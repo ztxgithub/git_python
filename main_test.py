@@ -1,2 +1,5 @@
 #! /usr/bin/env python3
-print("hello world")
+
+print(r'''hello world
+hello world2
+hello world3''')
