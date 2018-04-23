@@ -583,14 +583,202 @@
 
 ```shell
     1.迭代是通过for ... in来完成的, 不仅可以用在list或tuple上，还可以作用在其他可迭代对象上
-      list这种数据类型虽然有下标,但很多其他数据类型是没有下标的，但是，只要是可迭代对象，无论有无下标，都可以迭代，
-      比如dict就可以迭代：
-            >>> d = {'a': 1, 'b': 2, 'c': 3}
-            >>> for key in d:
-            ...     print(key)
+      list这种数据类型虽然有下标,但很多其他数据类型是没有下标的，但是，只要是可迭代对象，无论有无下标，都可以迭代,
+        A.
+          比如dict就可以迭代：
+                >>> d = {'a': 1, 'b': 2, 'c': 3}
+                >>> for key in d:
+                ...     print(key)
+                ...
+                结果
+                a
+                c
+                b
+                
+        B.默认情况下,dict迭代的是key.如果要迭代value,可以用for value in d.values(),
+          如果要同时迭代key和value,可以用for k, v in d.items()
+          
+    2.通过collections模块的Iterable类型判断
+        >>> from collections import Iterable
+        >>> isinstance('abc', Iterable) # str是否可迭代
+        True
+        >>> isinstance([1,2,3], Iterable) # list是否可迭代
+        True
+        >>> isinstance(123, Iterable) # 整数是否可迭代
+        False
+        
+    3.内置的enumerate函数可以把一个list变成 索引-元素 对,这样就可以在for循环中同时迭代索引和元素本身
+            >>> for i, value in enumerate(['A', 'B', 'C']):
+            ...     print(i, value)
             ...
-            结果
-            a
-            c
-            b
+            0 A
+            1 B
+            2 C
+            
+    4.在for循环里，同时引用了两个变量，在Python里是很常见的
+            >>> for x, y in [(1, 1), (2, 4), (3, 9)]:
+            ...     print(x, y)
+            ...
+            1 1
+            2 4
+            3 9
+``` 
+
+#### 迭代器
+
+```shell
+    1.可以直接作用于for循环的对象统称为可迭代对象：Iterable,
+       可以使用isinstance()判断一个对象是否是Iterable对象
+                    >>> from collections import Iterable
+                    >>> isinstance('abc', Iterable) # str是否可迭代
+                    True
+                    >>> isinstance((x for x in range(10)), Iterable)
+                    True
+    2.可以被next()函数调用并不断返回下一个值的对象称为迭代器：Iterator
+      可以使用isinstance()判断一个对象是否是Iterator对象
+          >>> from collections import Iterator
+          >>> isinstance((x for x in range(10)), Iterator)
+          True
+          >>> isinstance([], Iterator)
+          False
+          >>> isinstance({}, Iterator)
+          False
+          >>> isinstance('abc', Iterator)
+          False
+          
+    3.生成器都是Iterator对象,但list、dict、str虽然是Iterable，却不是Iterator,Iterator对象表示的是一个数据流,
+      Iterator对象可以被next()函数调用并不断返回下一个数据,直到没有数据时抛出StopIteration错误。
+      可以把这个数据流看做是一个有序序列，但我们却不能提前知道序列的长度，只能不断通过next()函数实现按需计算下一个数据，
+      所以Iterator的计算是惰性的，只有在需要返回下一个数据时它才会计算。 Iterator甚至可以表示一个无限大的数据流，
+      例如全体自然数。而使用list是永远不可能存储全体自然数的。
+      
+      把list、dict、str等Iterable变成Iterator可以使用iter()函数
+            >>> isinstance(iter([]), Iterator)
+            True
+            >>> isinstance(iter('abc'), Iterator)
+            True
+      
+``` 
+
+#### 列表生成式
+
+```shell
+    1.列表生成式即List Comprehensions,可以用来创建list的生成式
+        要生成[1x1, 2x2, 3x3, ..., 10x10]:
+            >>> [x * x for x in range(1, 11)]
+            [1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+            
+    2.for循环后面还可以加上if判断
+        >>> [x * x for x in range(1, 11) if x % 2 == 0]
+        [4, 16, 36, 64, 100]
+        
+    3.使用两层循环，可以生成全排列
+        >>> [m + n for m in 'ABC' for n in 'XYZ']
+        ['AX', 'AY', 'AZ', 'BX', 'BY', 'BZ', 'CX', 'CY', 'CZ']
+        
+    4.列表生成式也可以使用两个变量来生成list
+        >>> d = {'x': 'A', 'y': 'B', 'z': 'C' }
+        >>> [k + '=' + v for k, v in d.items()]
+        ['y=B', 'x=A', 'z=C']
+``` 
+
+#### 生成器
+
+```shell
+    1.通过列表生成式,我们可以直接创建一个列表。但是,受到内存限制,列表容量肯定是有限的.而且，创建一个包含100万个元素的列表,
+      不仅占用很大的存储空间，如果我们仅仅需要访问前面几个元素，那后面绝大多数元素占用的空间都白白浪费了。
+      如果列表元素可以按照某种算法推算出来,那我们是否可以在循环的过程中不断推算出后续的元素呢？这样就不必创建完整的list,
+      从而节省大量的空间在Python中,一边循环一边计算的机制，称为生成器：generator。
+      
+    2.创建一个generator,
+        A.第一个方法 只要把一个列表生成式的[]改成()
+            >>> g = (x * x for x in range(10))
+            >>> g
+            <generator object <genexpr> at 0x1022ef630>
+           
+        B.第二种方法 如果一个函数定义中包含yield关键字，那么这个函数就不再是一个普通函数，而是一个generator
+                def fib(max):
+                    n, a, b = 0, 0, 1
+                    while n < max:
+                        yield b
+                        a, b = b, a + b
+                        n = n + 1
+                    return 'done'
+                    
+                >>> f = fib(6)
+                >>> f
+                <generator object fib at 0x104feaaa0>
+                
+                >>> g = fib(6)
+                >>> while True:
+                ...     try:
+                ...         x = next(g)
+                ...         print('g:', x)
+                ...     except StopIteration as e:
+                ...         print('Generator return value:', e.value)
+                ...         break
+                ...
+                g: 1
+                g: 1
+                g: 2
+                g: 3
+                g: 5
+                g: 8
+                Generator return value: done
+                
+                用for循环调用generator时，发现拿不到generator的return语句的返回值。如果想要拿到返回值,
+                必须捕获StopIteration错误，返回值包含在StopIteration的value中
+                
+                注意:调用generator的函数，在每次调用next()的时候执行，遇到yield语句返回，
+                    再次执行时从上次返回的yield语句处继续执行。
+                    
+                    例如:
+                        def odd():
+                            print('step 1')
+                            yield 1
+                            print('step 2')
+                            yield(3)
+                            print('step 3')
+                            yield(5)
+                            
+                        >>> o = odd()
+                        >>> next(o)
+                        step 1
+                        1
+                        >>> next(o)
+                        step 2
+                        3
+                        >>> next(o)
+                        step 3
+                        5
+                        >>> next(o)
+                        Traceback (most recent call last):
+                          File "<stdin>", line 1, in <module>
+                        StopIteration
+        
+    3.打印出generator的每一个元素,可以通过next()函数获得generator的下一个返回值(一般调试用)
+        >>> next(g)
+        0
+        >>> next(g)
+        1
+        >>> next(g)
+        4
+        >>> next(g)
+        9
+        >>> next(g)
+        16
+        >>> next(g)
+        25
+        >>> next(g)
+    4.正常情况下 使用for循环遍历每一个元素
+        >>> g = (x * x for x in range(10))
+        >>> for n in g:
+        ...     print(n)
+        ... 
+        结果:
+            0
+            1
+            4
+            9
+            1
 ``` 

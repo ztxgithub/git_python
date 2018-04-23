@@ -45,3 +45,11 @@
            return -x
 
 ```
+
+- list(Iterator) 函数
+
+```shell
+
+    通过list()函数让它把惰性序列序列(Iterator )都计算出来并返回一个list
+
+```
