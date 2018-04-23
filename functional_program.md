@@ -150,6 +150,88 @@
         结果:
         'now'
         
-    2.
+    2.假设我们要增强now()函数的功能，比如，在函数调用前后自动打印日志，但又不希望修改now()函数的静态代码实现,
+      这种只在代码运行期间动态增加功能的方式，称之为“装饰器”（Decorator）
+      
+    3.本质上，decorator就是一个返回函数的高阶函数
+    
+        def log(func):
+            def wrapper(*args, **kw):
+                print('call %s():' % func.__name__)
+                return func(*args, **kw)
+            return wrapper
+            
+        借助Python的@语法，把decorator置于函数的定义处：
+        @log
+        def now():
+            print('2015-3-25')
+            
+            
+        把@log放到now()函数的定义处，相当于执行了语句：
+            now = log(now)  其中now是一个函数变量
+            
+        但是
+            >>> now.__name__
+            'wrapper'
+            
+        因为返回的那个wrapper()函数名字就是'wrapper'，所以，需要把原始函数的__name__等属性复制到wrapper()函数中，
+        否则，有些依赖函数签名的代码执行就会出错。
+        
+        完整的代码:
+            import functools
+            
+            def log(func):
+                @functools.wraps(func)
+                def wrapper(*args, **kw):
+                    print('call %s():' % func.__name__)
+                    return func(*args, **kw)
+                return wrapper
+           
+```
+
+## 偏函数
+
+```shell
+
+    1.Python的functools模块提供了很多有用的功能,其中一个就是偏函数（Partial function）
+    2.int()函数可以把字符串转换为整数，当仅传入字符串时，int()函数默认按十进制转换,
+      int()函数还提供额外的base参数，默认值为10。如果传入base参数，就可以做N进制的转换：
+        >>> int('12345', base=8)
+        5349
+        >>> int('12345', 16)
+        74565
+        
+      假设要转换大量的二进制字符串,每次都传入int(x, base=2)非常麻烦，于是，我们想到，
+      可以定义一个int2()的函数，默认把base=2传进去：
+            def int2(x, base=2):
+                return int(x, base)
+                
+            >>> int2('1000000')
+            64
+            
+      functools.partial就是帮助我们创建一个偏函数的,不需要我们自己定义int2()，
+      可以直接使用下面的代码创建一个新的函数int2：
+            >>> import functools
+            >>> int2 = functools.partial(int, base=2)
+            >>> int2('1000000')
+            64
+            >>> int2('1010101')
+            85
+            
+      创建偏函数时，实际上可以接收函数对象、*args和**kw这3个参数，
+        当传入：
+            int2 = functools.partial(int, base=2)
+        实际上固定了int()函数的关键字参数base，也就是：
+            int2('10010') 相当于： kw = { 'base': 2 } int('10010', **kw)
+            
+        当传入:
+            max2 = functools.partial(max, 10)
+        实际上会把10作为*args的一部分自动加到左边，也就是：
+            max2(5, 6, 7) 相当于： args = (10, 5, 6, 7) max(*args)
+            结果为 10
+            
+            
+    3.functools.partial的作用就是，把一个函数的某些参数给固定住（也就是设置默认值），
+      返回一个新的函数，调用这个新函数会更简单
            
 ```

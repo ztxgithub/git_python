@@ -66,6 +66,7 @@
     2.直接运行 calc.py 文件
         (1) 在calc.py 文件内容中第一行加上一个特殊的注释 
                 #!/usr/bin/env python3
+                # -*- coding: utf-8 -*-
         (2) 赋值可执行权限
                 > chmod +x calc.py
         (3) 运行
