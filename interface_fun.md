@@ -43,6 +43,8 @@
            return x
        else:
            return -x
+           
+    1.isinstance()判断的是一个对象是否是该类型本身，或者位于该类型的父继承链上
 
 ```
 
@@ -52,4 +54,93 @@
 
     通过list()函数让它把惰性序列序列(Iterator )都计算出来并返回一个list
 
+```
+
+- type()函数
+
+```shell
+
+   1.判断对象类型,返回对应的Class类型
+       >>> type(123)
+       <class 'int'>
+       >>> type('str')
+       <class 'str'>
+       
+   2.判断一个对象是否是函数,使用types模块中定义的常量
+        >>> import types
+        >>> def fn():
+        ...     pass
+        ...
+        >>> type(fn)==types.FunctionType
+        True
+        >>> type(abs)==types.BuiltinFunctionType
+        True
+        >>> type(lambda x: x)==types.LambdaType
+        True
+        >>> type((x for x in range(10)))==types.GeneratorType
+        True
+```
+
+- dir()函数
+
+```shell
+
+   1.获得一个对象的所有属性和方法,返回一个包含字符串的list,
+     比如，获得一个str对象的所有属性和方法
+        >>> dir('ABC')
+        ['__add__', '__class__',..., '__subclasshook__', 'capitalize', 'casefold',..., 'zfill']
+    
+```
+
+- hasattr()函数
+
+```shell
+
+   1.查看对象是否有 相应的属性
+        >>> hasattr(obj, 'x') # 有属性'x'吗？
+        True
+        
+   一个合适的用法的例子如下：
+        def readImage(fp):
+            if hasattr(fp, 'read'):
+                return readData(fp)
+            return None
+            
+        假设我们希望从文件流fp中读取图像，我们首先要判断该fp对象是否存在read方法，如果存在，
+        则该对象是一个流，如果不存在，则无法读取。hasattr()就派上了用场。
+```
+
+- setattr()函数
+
+```shell
+
+   1.对对象设置 相应的属性(可以是新增)
+        >>> hasattr(obj, 'y') # 有属性'y'吗？
+        False
+        >>> setattr(obj, 'y', 19) # 设置一个属性'y'
+        >>> hasattr(obj, 'y') # 有属性'y'吗？
+        True
+```
+
+- getattr()函数
+
+```shell
+
+   1.获取对象相应的属性值
+        >>> getattr(obj, 'y') # 获取属性'y'
+        19
+        >>> obj.y # 获取属性'y'
+        19
+        
+   2.如果试图获取不存在的属性,会抛出AttributeError的错误
+        >>> getattr(obj, 'z') # 获取属性'z'
+        Traceback (most recent call last):
+          File "<stdin>", line 1, in <module>
+        AttributeError: 'MyObject' object has no attribute 'z'
+        
+   3.可以传入一个default参数，如果属性不存在，就返回默认值
+        >>> getattr(obj, 'z', 404) # 获取属性'z'，如果不存在，返回默认值404
+        404
+        
+   
 ```
