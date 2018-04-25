@@ -165,6 +165,53 @@
    3.可以传入一个default参数，如果属性不存在，就返回默认值
         >>> getattr(obj, 'z', 404) # 获取属性'z'，如果不存在，返回默认值404
         404
+```
+
+- super继承
+
+```shell
+
+   1.super 是用来解决多重继承问题的,直接用类名调用父类方法在使用单继承的时候没问题，但是如果使用多继承，
+     会涉及到查找顺序（MRO）、重复调用（钻石继承）等种种问题
+   2.在super机制里可以保证公共父类仅被执行一次
+   3.注意super继承只能用于新式类，用于经典类时就会报错
+        新式类：必须有继承的类，如果没什么想继承的，那就继承object
+        经典类：没有父类，如果此时调用super就会出现错误：『super() argument 1 must be type, not classobj』
+        # 经典类
+        class A():
+            def __init__(self):
+                print 'A'
         
-   
+        class B(A):
+            def __init__(self):
+                A.__init__(self)
+                print 'B'
+        
+        class C(B, A):
+            def __init__(self):
+                A.__init__(self)
+                B.__init__(self)
+                print 'C'
+                
+        # 新式类
+        class A(object):
+            def __init__(self):
+                print 'A'
+        
+        class B(A):
+            def __init__(self):
+                super(B, self).__init__()
+                print 'B'
+        
+        class C(B, A):
+            def __init__(self):
+                super(C, self).__init__()
+                print 'C'
+                
+        采用新式类，要求最顶层的父类一定要继承于object，这样就可以利用super()函数来调用父类的init()等函数，
+        每个父类都执行且执行一次，并不会出现重复调用的情况。而且在子类的实现中，不用到处写出所有的父类名字，符合DRY原则
+        采用super()方式时，会自动找到第一个多继承中的第一个父类，
+        但是如果还想强制调用其他父类的init()函数或两个父类的同名函数时，就要用老办法了。
+        
+        
 ```
