@@ -308,3 +308,57 @@
                 注意到最后3行代码。当模块正常导入时,doctest不会被执行。只有在命令行直接运行时，才执行doctest。
                 所以，不必担心doctest会在非测试环境下执行。
 ```
+
+## 操作文件和目录
+
+```shell
+    1.获取详细的系统信息
+        (1) >>> import os
+        (2) >>> os.uname()
+        
+    2.获取环境变量
+        >>> os.environ
+        
+    3.获取某个环境变量的值,可以调用os.environ.get('key')
+            >>> os.environ.get('PATH')
+            '/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin:/opt/X11/bin:/usr/local/mysql/bin'
+            >>> os.environ.get('x', 'default')
+            'default'
+            
+    4.操作文件和目录的函数一部分放在os模块中，一部分放在os.path模块中，这一点要注意一下。
+            查看、创建和删除目录可以这么调用：
+                # 查看当前目录的绝对路径:
+                >>> os.path.abspath('.')
+                '/Users/michael'
+                # 在某个目录下创建一个新目录，首先把新目录的完整路径表示出来:
+                >>> os.path.join('/Users/michael', 'testdir')
+                '/Users/michael/testdir'
+                # 然后创建一个目录:
+                >>> os.mkdir('/Users/michael/testdir')
+                # 删掉一个目录:
+                >>> os.rmdir('/Users/michael/testdir')
+                
+    4.os.path.join()函数
+        把两个路径合成一个时，不要直接拼字符串,可以正确处理不同操作系统的路径分隔符
+        
+    5.os.path.split()函数 拆分路径
+        要拆分路径时，也不要直接去拆字符串，而要通过os.path.split()函数，
+        这样可以把一个路径拆分为两部分，后一部分总是最后级别的目录或文件名：
+            >>> os.path.split('/Users/michael/testdir/file.txt')
+            ('/Users/michael/testdir', 'file.txt')
+            
+    6.os.path.splitext() 得到文件扩展名
+        >>> os.path.splitext('/path/to/file.txt')
+        ('/path/to/file', '.txt')
+        
+    7.复制文件的函数居然在os模块中不存在,
+      shutil模块提供了copyfile()的函数，你还可以在shutil模块中找到很多实用函数，它们可以看做是os模块的补充
+      
+    8.列出当前目录下的所有目录
+        >>> [x for x in os.listdir('.') if os.path.isdir(x)]
+        ['.lein', '.local', '.m2', '.npm', '.ssh', '.Trash', '.vim', 'Applications', 'Desktop', ...]
+    9.列出所有的.py文件
+        >>> [x for x in os.listdir('.') if os.path.isfile(x) and os.path.splitext(x)[1]=='.py']
+        ['apis.py', 'config.py', 'models.py', 'pymonitor.py', 'test_db.py', 'urls.py', 'wsgiapp.py']
+        
+```

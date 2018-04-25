@@ -213,5 +213,39 @@
         采用super()方式时，会自动找到第一个多继承中的第一个父类，
         但是如果还想强制调用其他父类的init()函数或两个父类的同名函数时，就要用老办法了。
         
-        
 ```
+
+## 文件相关函数
+
+- open()函数
+
+```shell
+
+    1.读取二进制文件，比如图片、视频等等，用'rb'模式打开文件即可
+            >>> f = open('/Users/michael/test.jpg', 'rb')
+    2.要读取非UTF-8编码的文本文件,需要给open()函数传入encoding参数，例如，读取GBK编码的文件
+            >>> f = open('/Users/michael/gbk.txt', 'r', encoding='gbk')
+            >>> f.read()
+            '测试'
+            
+    3.遇到有些编码不规范的文件，你可能会遇到UnicodeDecodeError，因为在文本文件中可能夹杂了一些非法编码的字符。遇到这种情况，
+      open()函数还接收一个errors参数，表示如果遇到编码错误后如何处理。最简单的方式是直接忽略：
+            >>> f = open('/Users/michael/gbk.txt', 'r', encoding='gbk', errors='ignore')
+            
+    参数:
+        'w'模式 :覆盖写
+        'a'  : 以追加（append）模式写入
+```
+
+- read()函数
+
+```shell
+
+   str read():一次性读取文件的全部内容   
+   str read(size) :一次最多读size个字节
+   str readline():每次读取一行内容
+```
+
+## 字符串函数
+
+- str.strip() :把末尾的'\n'删掉
