@@ -415,5 +415,202 @@
         (3) 摘要算法在很多地方都有广泛的应用。要注意摘要算法不是加密算法(加密算法必定要进行解密)，不能用于加密
            （因为无法通过摘要反推明文），只能用于防篡改，但是它的单向计算特性决定了可以在不存储明文口令的情况下
            验证用户口令。
+```
+
+### hmac
+
+```shell
+
+    1.Hmac算法：Keyed-Hashing for Message Authentication。它通过一个标准算法，
+               在计算哈希的过程中，把key混入计算过程中
+               hmac输出的长度和原始哈希算法的长度一致。需要注意传入的key和message都是bytes类型，str类型需要首先编码为bytes
+               
+               >>> import hmac
+               >>> message = b'Hello, world!'
+               >>> key = b'secret'
+               >>> h = hmac.new(key, message, digestmod='MD5')
+               >>> # 如果消息很长，可以多次调用h.update(msg)
+               >>> h.hexdigest()
+               'fa4ee7d173f2d97ee79022d1a7355bcf'
+
+```
+
+### itertools
+
+```shell
+
+    1.Python的内建模块itertools提供了非常有用的用于操作迭代对象的函数
+    2.itertools提供的几个“无限”迭代器
+        (1) count()会创建一个无限的迭代器，所以代码会打印出自然数序列，
+            根本停不下来，只能按Ctrl+C退出
+                >>> import itertools
+                >>> natuals = itertools.count(1)
+                >>> for n in natuals:
+                ...     print(n)
+                ...
+                1
+                2
+                3
+                ...
+                
+        (2) cycle()会把传入的一个序列无限重复下去：
+                >>> import itertools
+                >>> cs = itertools.cycle('ABC') # 注意字符串也是序列的一种
+                >>> for c in cs:
+                ...     print(c)
+                ...
+                'A'
+                'B'
+                'C'
+                'A'
+                'B'
+                'C'
+                ...
+                
+        (3) repeat()负责把一个元素无限重复下去，不过如果提供第二个参数就可以限定重复次数：
+                >>> ns = itertools.repeat('A', 3)
+                >>> for n in ns:
+                ...     print(n)
+                ...
+                A
+                A
+                A
+                
+        (4) takewhile()等函数根据条件判断来截取出一个有限的序列
+                >>> natuals = itertools.count(1)
+                >>> ns = itertools.takewhile(lambda x: x <= 10, natuals)
+                >>> list(ns)
+                [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+                
+        (5) chain() : 可以把一组迭代对象串联起来，形成一个更大的迭代器
+                >>> for c in itertools.chain('ABC', 'XYZ'):
+                ...     print(c)
+                # 迭代效果：'A' 'B' 'C' 'X' 'Y' 'Z'
+                
+        (6) groupby()把迭代器中相邻的重复元素挑出来放在一起：
+        
+                >>> for key, group in itertools.groupby('AAABBBCCAAA'):
+                ...     print(key, list(group))
+                ...
+                A ['A', 'A', 'A']
+                B ['B', 'B', 'B']
+                C ['C', 'C']
+                A ['A', 'A', 'A']
+                
+            挑选规则是通过函数完成的，只要作用于函数的两个元素返回的值相等，这两个元素就被认为是在一组的，
+            而函数返回值作为组的key。如果我们要忽略大小写分组，就可以让元素'A'和'a'都返回相同的key
+            
+                >>> for key, group in itertools.groupby('AaaBBbcCAAa', lambda c: c.upper()):
+                ...     print(key, list(group))
+                ...
+                A ['A', 'a', 'a']
+                B ['B', 'B', 'b']
+                C ['c', 'C']
+                A ['A', 'A', 'a']
+                
+        (7) itertools模块提供的全部是处理迭代功能的函数，它们的返回值不是list，而是Iterator，只有用for循环迭代的时候才真正计算
+        
+
+```
+
+### contextlib
+
+```shell
+
+    1.只要正确实现了上下文管理，就可以用于with语句,实现上下文管理是通过__enter__和__exit__这两个方法实现的。
+       例如，下面的class实现了这两个方法：
+       
+            class Query(object):
+            
+                def __init__(self, name):
+                    self.name = name
+            
+                def __enter__(self):
+                    print('Begin')
+                    return self
+            
+                def __exit__(self, exc_type, exc_value, traceback):
+                    if exc_type:
+                        print('Error')
+                    else:
+                        print('End')
+            
+                def query(self):
+                    print('Query info about %s...' % self.name)
+                    
+            这样我们就可以把自己写的资源对象用于with语句:
+                with Query('Bob') as q:
+                    q.query()
+                    
+                结果:
+                    Begin
+                    Query info about Bob...
+                    End
+                    
+    2.编写__enter__和__exit__仍然很繁琐，因此Python的标准库contextlib提供了更简单的写法，上面的代码可以改写如下
     
+        from contextlib import contextmanager
+        
+        class Query(object):
+        
+            def __init__(self, name):
+                self.name = name
+        
+            def query(self):
+                print('Query info about %s...' % self.name)
+        
+        @contextmanager
+        def create_query(name):
+            print('Begin')
+            q = Query(name)
+            yield q
+            print('End')
+            
+        @contextmanager这个decorator接受一个generator，用yield语句把with ... as var把变量输出出去，
+        然后，with语句就可以正常地工作了：
+            with create_query('Bob') as q:
+                q.query()
+                
+        (1) 我们希望在某段代码执行前后自动执行特定代码，也可以用@contextmanager实现:
+        
+                from contextlib import contextmanager
+                @contextmanager
+                def tag(name):
+                    print("<%s>" % name)
+                    yield
+                    print("</%s>" % name)
+                
+                with tag("h1"):
+                    print("hello")
+                    print("world")
+                    
+                结果:
+                    <h1>
+                    hello
+                    world
+                    </h1>
+                    
+                 代码的执行顺序是：
+                     A. with语句首先执行yield之前的语句，因此打印出<h1>；
+                     B. yield调用会执行with语句内部的所有语句，因此打印出hello和world；
+                     C. 最后执行yield之后的语句，打印出</h1>
+                     
+                     
+    3.@closing 跟 @contextmanager 一样的效果
+        如果一个对象没有实现上下文，我们就不能把它用于with语句。这个时候，可以用closing()来把该对象变为上下文对象。
+        例如，用with语句使用urlopen()
+            from contextlib import closing
+            from urllib.request import urlopen
+            
+            with closing(urlopen('https://www.python.org')) as page:
+                for line in page:
+                    print(line)
+
+```
+
+### urllib
+
+```shell
+    (1) 
+
 ```
