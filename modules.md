@@ -104,7 +104,10 @@
 ```shell
 
     1.datetime是Python处理日期和时间的标准库
-          datetime(year,month,day,hour,minute,second,us)
+        from datetime import datetime, timedelta, timezone
+        
+        datetime(year,month,day,hour,minute,second,us)
+          
     2.获取当前日期和时间
         >>> from datetime import datetime
         >>> now = datetime.now() # 获取当前datetime
@@ -151,6 +154,266 @@
         >>> print(cday)
         2015-06-01 18:19:59
         
-    7.
+    7.datetime转换为str
+        格式化字符串:https://docs.python.org/3/library/datetime.html#strftime-strptime-behavior
+        >>> from datetime import datetime
+        >>> now = datetime.now()
+        >>> print(now.strftime('%a, %b %d %H:%M'))
+        Mon, May 05 16:28
+        
+    8.datetime加减
+        加减可以直接用+和-运算符，不过需要导入timedelta这个类
+            >>> from datetime import datetime, timedelta
+            >>> now = datetime.now()
+            >>> now
+            datetime.datetime(2015, 5, 18, 16, 57, 3, 540997)
+            >>> now + timedelta(hours=10)
+            datetime.datetime(2015, 5, 19, 2, 57, 3, 540997)
+            >>> now - timedelta(days=1)
+            datetime.datetime(2015, 5, 17, 16, 57, 3, 540997)
+            >>> now + timedelta(days=2, hours=12)
+            datetime.datetime(2015, 5, 21, 4, 57, 3, 540997)
+            
+    9.本地时间转换为UTC时间
+            本地时间是指系统设定时区的时间，例如北京时间是UTC+8:00时区的时间，而UTC时间指UTC+0:00时区的时间
+            一个datetime类型有一个时区属性tzinfo，但是默认为None，所以无法区分这个datetime到底是哪个时区，
+            除非强行给datetime设置一个时区：
+                >>> from datetime import datetime, timedelta, timezone
+                >>> tz_utc_8 = timezone(timedelta(hours=8)) # 创建时区UTC+8:00
+                >>> now = datetime.now()
+                >>> now
+                datetime.datetime(2015, 5, 18, 17, 2, 10, 871012)
+                >>> dt = now.replace(tzinfo=tz_utc_8) # 强制设置为UTC+8:00
+                >>> dt
+                datetime.datetime(2015, 5, 18, 17, 2, 10, 871012, tzinfo=datetime.timezone(datetime.timedelta(0, 28800)))
+                
+            如果系统时区恰好是UTC+8:00，那么上述代码就是正确的，否则，不能强制设置为UTC+8:00时区
+    10.时区转换
+            通过utcnow()拿到当前的UTC时间，再转换为任意时区的时间
+            时区转换的关键在于，拿到一个datetime时，要获知其正确的时区，然后强制设置时区，作为基准时间
+            利用带时区的datetime，通过astimezone()方法，可以转换到任意时区。
+            注：不是必须从UTC+0:00时区转换到其他时区，任何带时区的datetime都可以正确转换，例如上述bj_dt到tokyo_dt的转换。
+               在经过astimezone函数时,从bj_dt到tokyo_dt的转换,其
+               tokyo_dt2 = bj_dt.astimezone(timezone(timedelta(hours=9)))
+               这里hours是与utc的差值
+               
+            # 拿到UTC时间，并强制设置时区为UTC+0:00:
+            >>> utc_dt = datetime.utcnow().replace(tzinfo=timezone.utc)
+            >>> print(utc_dt)
+            2015-05-18 09:05:12.377316+00:00
+            # astimezone()将转换时区为北京时间:
+            >>> bj_dt = utc_dt.astimezone(timezone(timedelta(hours=8)))
+            >>> print(bj_dt)
+            2015-05-18 17:05:12.377316+08:00
+            # astimezone()将转换时区为东京时间:
+            >>> tokyo_dt = utc_dt.astimezone(timezone(timedelta(hours=9)))
+            >>> print(tokyo_dt)
+            2015-05-18 18:05:12.377316+09:00
+            # astimezone()将bj_dt转换时区为东京时间:
+            >>> tokyo_dt2 = bj_dt.astimezone(timezone(timedelta(hours=9)))
+            >>> print(tokyo_dt2)
+            2015-05-18 18:05:12.377316+09:00
+            
+            
+    11.datetime表示的时间需要时区信息才能确定一个特定的时间，否则只能视为本地时间。
+       如果要存储datetime，最佳方法是将其转换为timestamp再存储，因为timestamp的值与时区完全无关。
 
+```
+
+### collections
+
+```shell
+
+    1.namedtuple
+        namedtuple是一个函数,它用来创建一个自定义的tuple对象，并且规定了tuple元素的个数，
+        并可以用属性而不是索引来引用tuple的某个元素
+        我们用namedtuple可以很方便地定义一种数据类型，它具备tuple的不变性，又可以根据属性来引用，使用十分方便.
+        
+        >>> from collections import namedtuple
+        >>> Point = namedtuple('Point', ['x', 'y'])
+        >>> p = Point(1, 2)
+        >>> p.x
+        1
+        >>> p.y
+        2
+        
+       (1) 用坐标和半径表示一个圆，也可以用namedtuple定义：
+                # namedtuple('名称', [属性list]):
+                Circle = namedtuple('Circle', ['x', 'y', 'r'])
+                
+    2.deque
+        deque是为了高效实现插入和删除操作的双向列表，适合用于队列和栈,
+        deque除了实现list的append()和pop()外，还支持appendleft()和popleft()，
+        这样就可以非常高效地往头部添加或删除元素。
+        
+        >>> from collections import deque
+        >>> q = deque(['a', 'b', 'c'])
+        >>> q.append('x')
+        >>> q.appendleft('y')
+        >>> q
+        deque(['y', 'a', 'b', 'c', 'x'])
+        
+    3.defaultdict 
+        使用dict时,如果引用的Key不存在，就会抛出KeyError。如果希望key不存在时，返回一个默认值，就可以用defaultdict  
+        默认值是调用函数返回的，而函数在创建defaultdict对象时传入
+        
+            >>> from collections import defaultdict
+            >>> dd = defaultdict(lambda: 'N/A')
+            >>> dd['key1'] = 'abc'
+            >>> dd['key1'] # key1存在
+            'abc'
+            >>> dd['key2'] # key2不存在，返回默认值
+            'N/A'
+            
+    4.OrderedDict
+        使用dict时，Key是无序的,如果要保持Key的顺序，可以用OrderedDict
+        注意:OrderedDict的Key会按照插入的顺序排列，不是Key本身排序：
+            >>> from collections import OrderedDict
+            >>> d = dict([('a', 1), ('b', 2), ('c', 3)])
+            >>> d # dict的Key是无序的
+            {'a': 1, 'c': 3, 'b': 2}
+            >>> od = OrderedDict([('a', 1), ('d', 2), ('c', 3)])
+            >>> od # OrderedDict的Key是有序的
+            OrderedDict([('a', 1), ('d', 2), ('c', 3)])
+            
+            OrderedDict可以实现一个FIFO（先进先出）的dict，当容量超出限制时，先删除最早添加的Key:
+            
+                from collections import OrderedDict
+                
+                class LastUpdatedOrderedDict(OrderedDict):
+                
+                    def __init__(self, capacity):
+                        super(LastUpdatedOrderedDict, self).__init__()
+                        self._capacity = capacity
+                
+                    def __setitem__(self, key, value):
+                        containsKey = 1 if key in self else 0
+                        if len(self) - containsKey >= self._capacity:
+                            last = self.popitem(last=False)
+                            print('remove:', last)
+                        if containsKey:
+                            del self[key]
+                            print('set:', (key, value))
+                        else:
+                            print('add:', (key, value))
+                        OrderedDict.__setitem__(self, key, value)
+                        
+                        
+    5.Counter
+        Counter是一个简单的计数器,
+        
+        >>> from collections import Counter
+        >>> c = Counter()
+        >>> for ch in 'programming':
+        ...     c[ch] = c[ch] + 1
+        ...
+        >>> c
+        Counter({'g': 2, 'm': 2, 'r': 2, 'a': 1, 'i': 1, 'o': 1, 'n': 1, 'p': 1})
+
+```
+
+### base64
+
+```shell
+
+    1.Python内置的base64可以直接进行base64的编解码
+        >>> import base64
+        >>> base64.b64encode(b'binary\x00string')
+        b'YmluYXJ5AHN0cmluZw=='
+        >>> base64.b64decode(b'YmluYXJ5AHN0cmluZw==')
+        b'binary\x00string'
+        
+    2.适合url 的base64编解码
+      由于标准的Base64编码后可能出现字符+和/，在URL中就不能直接作为参数，
+      所以又有一种"url safe"的base64编码，其实就是把字符+和/分别变成-和_：
+        >>> base64.b64encode(b'i\xb7\x1d\xfb\xef\xff')
+        b'abcd++//'
+        >>> base64.urlsafe_b64encode(b'i\xb7\x1d\xfb\xef\xff')
+        b'abcd--__'
+        >>> base64.urlsafe_b64decode('abcd--__')
+        b'i\xb7\x1d\xfb\xef\xff'
+        
+    3.Base64适用于小段内容的编码，比如数字证书签名、Cookie的内容等
+    
+```
+
+### struct
+
+```shell
+
+    1.struct模块来解决bytes和其他二进制数据类型的转换
+        > 表示字节顺序是big-endian，也就是网络序
+        < 表示字节顺序是little-endian，
+        c:一个字节
+        I:4字节无符号整数
+        H：2字节无符号整数
+    2.struct的pack函数把任意数据类型变成bytes
+        >>> import struct
+        >>> struct.pack('>I', 10240099)
+        b'\x00\x9c@c'
+        
+    3.struct.pack()函数
+        pack的第一个参数是处理指令
+            '>I'的意思是： >表示字节顺序是big-endian，也就是网络序，I表示4字节无符号整数。
+            
+    4.unpack把bytes变成相应的数据类型
+        >>> struct.unpack('>IH', b'\xf0\xf0\xf0\xf0\x80\x80')
+        (4042322160, 32896)
+        根据>IH的说明，后面的bytes依次变为I：4字节无符号整数 和 H：2字节无符号整数。
+    
+```
+
+### hashlib
+
+```shell
+
+    1.Python的hashlib提供了常见的摘要算法，如MD5，SHA1等等。
+      摘要算法又称哈希算法、散列算法。它通过一个函数，把任意长度的数据转换为一个长度固定的数据串（通常用16进制的字符串表示）
+      摘要算法就是通过摘要函数f()对任意长度的数据data计算出固定长度的摘要digest，目的是为了发现原始数据是否被人篡改过
+      摘要算法之所以能指出数据是否被篡改过，就是因为摘要函数是一个单向函数，计算f(data)很容易，
+      但通过digest反推data却非常困难。而且，对原始数据做一个bit的修改，都会导致计算出的摘要完全不同
+      
+    2.摘要算法MD5
+        任意长度的字符串进过MD5生成结果是固定的128 bit字节，通常用一个32位的16进制字符串表示
+        import hashlib
+        
+        md5 = hashlib.md5()
+        md5.update('how to use md5 in python hashlib?'.encode('utf-8'))
+        print(md5.hexdigest())
+        
+        结果:
+        d26a53750bc40b38b65a520292f69306
+        
+        (1) 数据量很大，可以分块多次调用update()，最后计算的结果是一样的
+                import hashlib
+                
+                md5 = hashlib.md5()
+                md5.update('how to use md5 in '.encode('utf-8'))
+                md5.update('python hashlib?'.encode('utf-8'))
+                print(md5.hexdigest())
+                
+    3.摘要算法SHA1
+        任意长度的字符串进过SHA1生成结果是固定的160 bit字节，通常用一个40位的16进制字符串表示。
+        import hashlib
+        
+        sha1 = hashlib.sha1()
+        sha1.update('how to use sha1 in '.encode('utf-8'))
+        sha1.update('python hashlib?'.encode('utf-8'))
+        print(sha1.hexdigest())
+        
+    3.摘要算法应用
+        (1) 任何允许用户登录的网站都会存储用户登录的用户名和口令,在数据库中如果保存明文,则存在安全泄露,
+             正确的保存口令(密码)的方式是不存储用户的明文口令(密码)，而是存储用户口令(密码)的摘要
+             当用户登录时，首先计算用户输入的明文口令的MD5，然后和数据库存储的MD5对比，
+             如果一致，说明口令输入正确，如果不一致，口令肯定错误
+             
+        (2) 由于常用口令的MD5值很容易被计算出来，所以，要确保存储的用户口令不是那些已经被计算出来的常用口令的MD5，
+            这一方法通过对原始口令加一个复杂字符串来实现，俗称“加盐”,经过Salt处理的MD5口令，只要Salt不被黑客知道，
+            即使用户输入简单口令，也很难通过MD5反推明文口令：
+                def calc_md5(password):
+                    return get_md5(password + 'the-Salt')
+        (3) 摘要算法在很多地方都有广泛的应用。要注意摘要算法不是加密算法(加密算法必定要进行解密)，不能用于加密
+           （因为无法通过摘要反推明文），只能用于防篡改，但是它的单向计算特性决定了可以在不存储明文口令的情况下
+           验证用户口令。
+    
 ```
