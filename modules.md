@@ -611,6 +611,208 @@
 ### urllib
 
 ```shell
-    (1) 
+    (1) urllib提供了一系列用于操作URL的功能
+    (2) Get
+            (A)
+                urllib的request可以非常方便地抓取URL内容，也就是发送一个GET请求到指定的页面，然后返回HTTP的响应
+                例如，对豆瓣的一个URLhttps://api.douban.com/v2/book/2129650进行抓取，并返回响应
+                    from urllib import request
+                    
+                    with request.urlopen('https://api.douban.com/v2/book/2129650') as f:
+                        data = f.read()
+                        print('Status:', f.status, f.reason)
+                        for k, v in f.getheaders():
+                            print('%s: %s' % (k, v))
+                        print('Data:', data.decode('utf-8'))
+                        
+            (B) 如果我们要想模拟浏览器发送GET请求，就需要使用Request对象，通过往Request对象添加HTTP头，
+                我们就可以把请求伪装成浏览器
+                        from urllib import request
+                        
+                        req = request.Request('http://www.douban.com/')
+                        req.add_header('User-Agent', 'Mozilla/6.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/8.0 Mobile/10A5376e Safari/8536.25')
+                        with request.urlopen(req) as f:
+                            print('Status:', f.status, f.reason)
+                            for k, v in f.getheaders():
+                                print('%s: %s' % (k, v))
+                            print('Data:', f.read().decode('utf-8'))
+                            
+                            
+    (3) Post
+            我们模拟一个微博登录，先读取登录的邮箱和口令，然后按照weibo.cn的登录页的格式以username=xxx&password=xxx的编码传入
+            from urllib import request, parse
+            
+            print('Login to weibo.cn...')
+            email = input('Email: ')
+            passwd = input('Password: ')
+            login_data = parse.urlencode([
+                ('username', email),
+                ('password', passwd),
+                ('entry', 'mweibo'),
+                ('client_id', ''),
+                ('savestate', '1'),
+                ('ec', ''),
+                ('pagerefer', 'https://passport.weibo.cn/signin/welcome?entry=mweibo&r=http%3A%2F%2Fm.weibo.cn%2F')
+            ])
+            
+            req = request.Request('https://passport.weibo.cn/sso/login')
+            req.add_header('Origin', 'https://passport.weibo.cn')
+            req.add_header('User-Agent', 'Mozilla/6.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/8.0 Mobile/10A5376e Safari/8536.25')
+            req.add_header('Referer', 'https://passport.weibo.cn/signin/login?entry=mweibo&res=wel&wm=3349&r=http%3A%2F%2Fm.weibo.cn%2F')
+            
+            with request.urlopen(req, data=login_data.encode('utf-8')) as f:
+                print('Status:', f.status, f.reason)
+                for k, v in f.getheaders():
+                    print('%s: %s' % (k, v))
+                print('Data:', f.read().decode('utf-8'))
+                
+    (4) Handler
+            
+```
 
+### requests 第三模块
+
+```shell
+    1.安装requests
+        $ sudo pip install requests
+    2.GET访问一个页面
+        >>> import requests
+        >>> r = requests.get('https://www.douban.com/') # 豆瓣首页
+        >>> r.status_code
+        200
+        >>> r.text
+        r.text
+        '<!DOCTYPE HTML>\n<html>\n<head>\n<meta name="description" content="提供图书、电影、音乐唱片的推荐、评论和...'
+        
+       (1) 对于带参数的URL，传入一个dict作为params参数：
+                >>> r = requests.get('https://www.douban.com/search', params={'q': 'python', 'cat': '1001'})
+                >>> r.url # 实际请求的URL
+                'https://www.douban.com/search?q=python&cat=1001'
+                
+       (2) 无论响应是文本还是二进制内容，我们都可以用content属性获得bytes对象：
+                >>> r.content
+                b'<!DOCTYPE html>\n<html>\n<head>\n<meta http-equiv="Content-Type" content="text/html; charset=utf-8">\n...'
+                
+                
+       (3) 对于特定类型的响应，例如JSON，可以直接获取
+                >>> r = requests.get('https://query.yahooapis.com/v1/public/yql?q=select%20*%20from%20weather.forecast%20where%20woeid%20%3D%202151330&format=json')
+                >>> r.json()
+                {'query': {'count': 1, 'created': '2017-11-17T07:14:12Z', ...
+                
+       (4) 传入HTTP Header时，我们传入一个dict作为headers参数
+                >>> r = requests.get('https://www.douban.com/', headers={'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 11_0 like Mac OS X) AppleWebKit'})
+                >>> r.text
+                '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n <title>豆瓣(手机版)</title>...'
+                
+       (5) 要发送POST请求，只需要把get()方法变成post()，然后传入data参数作为POST请求的数据
+                >>> r = requests.post('https://accounts.douban.com/login', data={'form_email': 'abc@example.com', 'form_password': '123456'})
+                
+       (6) 如果要传递JSON数据，可以直接传入json参数：
+                params = {'key': 'value'}
+                r = requests.post(url, json=params) # 内部自动序列化为JSON
+                
+       (7) 上传文件
+                在读取文件时，注意务必使用'rb'即二进制模式读取，这样获取的bytes长度才是文件的长度
+                >>> upload_files = {'file': open('report.xls', 'rb')}
+                >>> r = requests.post(url, files=upload_files)
+                
+       (8) 获取响应头：
+                >>> r.headers
+                {Content-Type': 'text/html; charset=utf-8', 'Transfer-Encoding': 'chunked', 'Content-Encoding': 'gzip', ...}
+                >>> r.headers['Content-Type']
+                'text/html; charset=utf-8'
+                
+       (9) requests对Cookie做了特殊处理，使得我们不必解析Cookie就可以轻松获取指定的Cookie
+                >>> r.cookies['ts']
+                'example_cookie_12345'
+       (10) 在请求中传入Cookie，只需准备一个dict传入cookies参数：
+                >>> cs = {'token': '12345', 'status': 'working')
+                >>> r = requests.get(url, cookies=cs)
+                
+       (11) 指定超时，传入以秒为单位的timeout参数：
+                >>> r = requests.get(url, timeout=2.5) # 2.5秒后超时
+```
+
+### XML
+
+```shell
+   1.操作XML有两种方法：DOM和 SAX(推荐使用)
+            (1) DOM会把整个XML读入内存，解析为树，因此占用内存大，解析慢，优点是可以任意遍历树的节点
+            (2) SAX是流模式，边读边解析，占用内存小，解析快，缺点是我们需要自己处理事件.
+            
+   2.当SAX解析器读到一个节点时
+        <a href="/">test_information</a>
+        
+        产生3个事件：
+        
+            (1) start_element事件，在读取<a href="/">时；
+            (2) char_data事件，在读取test_information时；
+            (3) end_element事件，在读取</a>时。
+            
+            from xml.parsers.expat import ParserCreate
+            
+            class DefaultSaxHandler(object):
+                def start_element(self, name, attrs):
+                    print('sax:start_element: %s, attrs: %s' % (name, str(attrs)))
+            
+                def end_element(self, name):
+                    print('sax:end_element: %s' % name)
+            
+                def char_data(self, text):
+                    print('sax:char_data: %s' % text)
+            
+            xml = r'''<?xml version="1.0"?>
+            <ol>
+                <li><a href="/python">Python</a></li>
+                <li><a href="/ruby">Ruby</a></li>
+            </ol>
+            '''
+            
+            handler = DefaultSaxHandler()
+            parser = ParserCreate()
+            parser.StartElementHandler = handler.start_element
+            parser.EndElementHandler = handler.end_element
+            parser.CharacterDataHandler = handler.char_data
+            parser.Parse(xml)
+```
+
+### HTMLParser
+
+```shell
+   1.HTMLParser来非常方便地解析HTML,feed()方法可以多次调用，也就是不一定一次把整个HTML字符串都塞进去，可以一部分一部分塞进去。
+        from html.parser import HTMLParser
+        from html.entities import name2codepoint
+        
+        class MyHTMLParser(HTMLParser):
+        
+            def handle_starttag(self, tag, attrs):
+                print('<%s>' % tag)
+        
+            def handle_endtag(self, tag):
+                print('</%s>' % tag)
+        
+            def handle_startendtag(self, tag, attrs):
+                print('<%s/>' % tag)
+        
+            def handle_data(self, data):
+                print(data)
+        
+            def handle_comment(self, data):
+                print('<!--', data, '-->')
+        
+            def handle_entityref(self, name):
+                print('&%s;' % name)
+        
+            def handle_charref(self, name):
+                print('&#%s;' % name)
+        
+        parser = MyHTMLParser()
+        parser.feed('''<html>
+        <head></head>
+        <body>
+        <!-- test html parser -->
+            <p>Some <a href=\"#\">html</a> HTML&nbsp;tutorial...<br>END</p>
+        </body></html>''')
+        
+        
 ```
