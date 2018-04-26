@@ -96,3 +96,61 @@
                 设置方式与设置Path环境变量类似。注意只需要添加你自己的搜索路径，Python自己本身的搜索路径不受影响
 
 ```
+
+## 内建模块
+
+### datetime
+
+```shell
+
+    1.datetime是Python处理日期和时间的标准库
+          datetime(year,month,day,hour,minute,second,us)
+    2.获取当前日期和时间
+        >>> from datetime import datetime
+        >>> now = datetime.now() # 获取当前datetime
+        >>> print(now)
+        2015-05-18 16:28:07.198690
+        >>> print(type(now))
+        <class 'datetime.datetime'>
+        
+        注意到datetime是模块，datetime模块还包含一个datetime类，通过from datetime import datetime导入的才是datetime这个类。
+        
+        如果仅导入import datetime，则必须引用全名datetime.datetime。
+        
+        datetime.now()返回当前日期和时间，其类型是datetime。
+        
+    3.获取指定日期和时间
+        >>> from datetime import datetime
+        >>> dt = datetime(2015, 4, 19, 12, 20) # 用指定日期时间创建datetime
+        >>> print(dt)
+        2015-04-19 12:20:00
+        
+    4.datetime转换为timestamp
+    
+        >>> from datetime import datetime
+        >>> dt = datetime(2015, 4, 19, 12, 20) # 用指定日期时间创建datetime
+        >>> dt.timestamp() # 把datetime转换为timestamp
+        1429417200.0
+        
+        小数位表示毫秒数
+        
+    5.timestamp转换为datetime
+        注意到timestamp是一个浮点数,它没有时区的概念，而datetime是有时区的。转换是在timestamp和本地时间做转换
+        
+        >>> from datetime import datetime
+        >>> t = 1429417200.0
+        >>> print(datetime.fromtimestamp(t)) # 本地时间
+        2015-04-19 12:20:00
+        >>> print(datetime.utcfromtimestamp(t)) # UTC时间
+        2015-04-19 04:20:00
+        
+    6.str转换为datetime
+        需要一个日期和时间的格式化字符串,转换后的datetime是没有时区信息的
+        >>> from datetime import datetime
+        >>> cday = datetime.strptime('2015-6-1 18:19:59', '%Y-%m-%d %H:%M:%S')
+        >>> print(cday)
+        2015-06-01 18:19:59
+        
+    7.
+
+```

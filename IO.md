@@ -82,7 +82,7 @@
    
 ```
 
-## 序列化
+### 序列化
 
 ```shell
     1.从内存中变成可存储或传输的过程称之为序列化,在Python中叫pickling，在其他语言中也被称之为serialization，marshalling,
@@ -165,7 +165,13 @@
                     >>> json_str = '{"age": 20, "score": 88, "name": "Bob"}'
                     >>> print(json.loads(json_str, object_hook=dict2student))
                     <__main__.Student object at 0x10cd3c190>
-            
-            
-        
+                  
+```
+
+## 异步IO
+
+### 概要
+```shell
+    1.事件驱动模型:Nginx就是支持异步IO的Web服务器，它在单核CPU上采用单进程模型就可以高效地支持多任务
+    2.对应到Python语言，单线程的异步编程模型称为协程，有了协程的支持，就可以基于事件驱动编写高效的多任务程序
 ```
