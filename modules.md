@@ -816,3 +816,37 @@
         
         
 ```
+
+### chardet 第三方模块,字符编码
+
+```shell
+    1.安装chardet
+        $ sudo pip install chardet
+        
+    2.当我们拿到一个bytes时，就可以对其检测编码
+            >>> chardet.detect(b'Hello, world!')
+            {'encoding': 'ascii', 'confidence': 1.0, 'language': ''}
+            
+
+```
+
+### psutil(process and system utilities) 第三方模块,脚本运维
+
+```shell
+    1.安装psutil
+        $ sudo pip install psutil
+        
+    2.当我们拿到一个bytes时，就可以对其检测编码
+            >>> chardet.detect(b'Hello, world!')
+            {'encoding': 'ascii', 'confidence': 1.0, 'language': ''}
+            
+    3.获取CPU信息
+        >>> import psutil
+        >>> psutil.cpu_count() # CPU逻辑数量
+        4
+        >>> psutil.cpu_count(logical=False) # CPU物理核心
+        2
+        # 2说明是双核超线程, 4则是4核非超线程
+            
+
+```
