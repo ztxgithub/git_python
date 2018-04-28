@@ -369,6 +369,75 @@
             #{}
             #I am 28, what did you think?
             
+    12.functools模块(得到的是原始的名称, 而不是封装器的名称)
+        # 调试，打印函数的名字
+        def foo():
+            print "foo"
+        
+        print foo.__name__
+        #outputs: foo
+        
+        # 但当你使用装饰器，这一切变得混乱
+        def bar(func):
+            def wrapper():
+                print "bar"
+                return func()
+            return wrapper
+        
+        @bar
+        def foo():
+            print "foo"
+        
+        print foo.__name__
+        #outputs: wrapper
+        
+        # "functools" 可以改变这点
+        import functools
+        
+        def bar(func):
+            # 我们所说的 "wrapper", 封装 "func"
+            @functools.wraps(func)
+            def wrapper():
+                print "bar"
+                return func()
+            return wrapper
+        
+        @bar
+        def foo():
+            print "foo"
+        
+        # 得到的是原始的名称, 而不是封装器的名称
+        print foo.__name__
+        #outputs: foo
+        
+    13.装饰器的用途
+            (1) 装饰器打印一个函数的执行时间
+                    def benchmark(func):
+                        """
+                        装饰器打印一个函数的执行时间
+                        """
+                        import time
+                        def wrapper(*args, **kwargs):
+                            t = time.clock()
+                            res = func(*args, **kwargs)
+                            print func.__name__, time.clock()-t
+                            return res
+                        return wrapper
+                        
+             (2) 记录并打印一个函数的执行次数
+                    def counter(func):
+                        """
+                        记录并打印一个函数的执行次数
+                        """
+                        def wrapper(*args, **kwargs):
+                            wrapper.count = wrapper.count + 1
+                            res = func(*args, **kwargs)
+                            print "{0} has been used: {1}x".format(func.__name__, wrapper.count)
+                            return res
+                        wrapper.count = 0
+                        return wrapper
+        
+            
            
 ```
 
