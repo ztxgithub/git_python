@@ -152,40 +152,223 @@
         
     2.假设我们要增强now()函数的功能，比如，在函数调用前后自动打印日志，但又不希望修改now()函数的静态代码实现,
       这种只在代码运行期间动态增加功能的方式，称之为“装饰器”（Decorator）
-      
-    3.本质上，decorator就是一个返回函数的高阶函数
-    
-        def log(func):
-            def wrapper(*args, **kw):
-                print('call %s():' % func.__name__)
-                return func(*args, **kw)
-            return wrapper
+                    
+    4.在python中,函数是对象,可以进行函数变量的赋值
+    5.函数可以被定义在另一个函数里面
+        def talk():
+            # 你可以定义一个函数
+            def whisper(word="yes"):
+                return word.lower()+"..."
+                
+            .....
             
-        借助Python的@语法，把decorator置于函数的定义处：
-        @log
-        def now():
-            print('2015-3-25')
-            
-            
-        把@log放到now()函数的定义处，相当于执行了语句：
-            now = log(now)  其中now是一个函数变量
-            
-        但是
-            >>> now.__name__
-            'wrapper'
-            
-        因为返回的那个wrapper()函数名字就是'wrapper'，所以，需要把原始函数的__name__等属性复制到wrapper()函数中，
-        否则，有些依赖函数签名的代码执行就会出错。
+            return
+    6.装饰器就是封装器,可以让你在 被装饰函数(自己编写函数) 之前或之后执行代码，而不必修改函数本身(自己编写函数)
+    7.书写一个装饰器
+        # 装饰器是一个以另一个函数为参数的函数
+        def my_shiny_new_decorator(a_function_to_decorate):
         
-        完整的代码:
-            import functools
+           在这里，装饰器定义一个函数： 包装器.这个函数将原始函数进行包装，以达到在原始函数之前、之后执行代码的目的
+            def the_wrapper_around_the_original_function():
+        
+                将你要在原始函数之前执行的代码放到这里
+                print "Before the function runs"
+        
+                调用原始函数(需要带括号)
+                a_function_to_decorate()
+        
+                将你要在原始函数之后执行的代码放到这里
+                print "After the function runs"
+        
+            代码到这里，函数‘a_function_to_decorate’还没有被执行,我们将返回刚才创建的这个包装函数
+            这个函数包含原始函数及要执行的附加代码，并且可以被使用
+            return the_wrapper_around_the_original_function
             
-            def log(func):
-                @functools.wraps(func)
-                def wrapper(*args, **kw):
-                    print('call %s():' % func.__name__)
-                    return func(*args, **kw)
-                return wrapper
+        A.未使用装饰器语法:
+        
+            创建一个有效的函数
+            def a_stand_alone_function():
+                print "I am a stand alone function, don't you dare modify me"
+            
+            
+            在这里你可以装饰这个函数，将函数传递给装饰器，装饰器将动态地将其包装在任何你想执行的代码中，然后返回一个新的函数
+            a_stand_alone_function_decorated = my_shiny_new_decorator(a_stand_alone_function)
+            
+             调用新函数，可以看到装饰器的效果
+            a_stand_alone_function_decorated()
+            结果:
+                Before the function runs
+                I am a stand alone function, don't you dare modify me
+                After the function runs
+            
+        B. 使用装饰器
+                @my_shiny_new_decorator
+                def another_stand_alone_function():
+                    print "Leave me alone"
+                    
+                以上就等于 another_stand_alone_function = my_shiny_new_decorator(another_stand_alone_function)
+                
+                another_stand_alone_function()
+                结果:
+                Before the function runs
+                Leave me alone
+                After the function runs
+                
+    8.累加两个装饰器
+        def bread(func):
+            def wrapper():
+                print "</''''''\>"
+                func()
+                print "<\______/>"
+            return wrapper
+        
+        def ingredients(func):
+            def wrapper():
+                print "#tomatoes#"
+                func()
+                print "~salad~"
+            return wrapper
+        
+        def sandwich(food="--ham--"):
+            print food
+        
+        sandwich()
+            结果:
+            outputs: --ham--
+        
+        A.未使用装饰器语法:
+            累加两个装饰器
+            sandwich = bread(ingredients(sandwich))
+            sandwich()
+            结果:
+                </''''''\>
+                 #tomatoes#
+                 --ham--
+                 ~salad~
+                <\______/>
+                
+        B,使用装饰器语法:
+            装饰器位置的顺序很重要
+            
+            @bread
+            @ingredients
+            def sandwich(food="--ham--"):
+                print food
+            
+            sandwich()
+            结果:
+                </''''''\>
+                 #tomatoes#
+                 --ham--
+                 ~salad~
+                <\______/>
+                
+    9.向装饰器函数传递参数
+    
+        装饰器函数
+        def a_decorator_passing_arguments(function_to_decorate):
+            def a_wrapper_accepting_arguments(arg1, arg2):
+                    print "I got args! Look:", arg1, arg2
+                    function_to_decorate(arg1, arg2)
+            return a_wrapper_accepting_arguments
+        
+        当你调用装饰器返回的函数，实际上是调用包装函数，所以给包装函数传递参数即可将参数传给装饰器函数
+        
+        @a_decorator_passing_arguments
+        def print_full_name(first_name, last_name):
+            print "My name is", first_name, last_name
+        
+        print_full_name("Peter", "Venkman")
+        结果:
+            I got args! Look: Peter Venkman
+            My name is Peter Venkman
+            
+    10.装饰方法(对应对象而言)
+            Python中对象的方法和函数是一样的,除了对象的方法首个参数是指向当前对象的引用(self).
+            这意味着你可以用同样的方法构建一个装饰器，只是必须考虑self
+            
+                def method_friendly_decorator(method_to_decorate):
+                    def wrapper(self, lie):
+                        lie = lie - 3 
+                        return method_to_decorate(self, lie)
+                    return wrapper
+                
+                class Lucy(object):
+                
+                    def __init__(self):
+                        self.age = 32
+                
+                    @method_friendly_decorator
+                    def sayYourAge(self, lie):
+                        print "I am %s, what did you think?" % (self.age + lie)
+                
+                l = Lucy()
+                l.sayYourAge(-3)
+                #outputs: I am 26, what did you think?
+                
+                
+    11.构造一个更加通用的装饰器,可以作用在任何函数或对象方法上，而不必关心其参数使用       
+            def a_decorator_passing_arbitrary_arguments(function_to_decorate):
+                包装函数可以接受任何参数
+                def a_wrapper_accepting_arbitrary_arguments(*args, **kwargs):
+                    print "Do I have args?:"
+                    print args
+                    print kwargs
+                    function_to_decorate(*args, **kwargs)
+                return a_wrapper_accepting_arbitrary_arguments
+            
+            @a_decorator_passing_arbitrary_arguments
+            def function_with_no_argument():
+                print "Python is cool, no argument here."
+            
+            function_with_no_argument()
+            结果:
+            Do I have args?:
+            ()
+            {}
+            Python is cool, no argument here.
+            
+            传入可变参数
+            @a_decorator_passing_arbitrary_arguments
+            def function_with_arguments(a, b, c):
+                print a, b, c
+            
+            function_with_arguments(1,2,3)
+            结果:
+            Do I have args?:
+            (1, 2, 3)
+            {}
+            1 2 3
+            
+            传入关键字参数
+            @a_decorator_passing_arbitrary_arguments
+            def function_with_named_arguments(a, b, c, platypus="Why not ?"):
+                print "Do %s, %s and %s like platypus? %s" %\
+                (a, b, c, platypus)
+            
+            function_with_named_arguments("Bill", "Linus", "Steve", platypus="Indeed!")
+            结果:
+            Do I have args ? :
+            ('Bill', 'Linus', 'Steve')
+            {'platypus': 'Indeed!'}
+            Do Bill, Linus and Steve like platypus? Indeed!
+            
+            class Mary(object):
+                def __init__(self):
+                    self.age = 31
+            
+                @a_decorator_passing_arbitrary_arguments
+                def sayYourAge(self, lie=-3): # You can now add a default value
+                    print "I am %s, what did you think ?" % (self.age + lie)
+            
+            m = Mary()
+            m.sayYourAge()
+            #outputs
+            # Do I have args?:
+            #(<__main__.Mary object at 0xb7d303ac>,)
+            #{}
+            #I am 28, what did you think?
+            
            
 ```
 
