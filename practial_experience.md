@@ -675,7 +675,35 @@
             c = consumer()
             produce(c)
             
-    4.asyncio是Python 3.4版本引入的标准库，直接内置了对异步IO的支持。
+    4.yield from用于重构生成器
+    
+        def copy_fib(n):
+        	print('I am copy from fib')
+        	yield from fib(n)
+        	print('Copy end')
+        print('-'*10 + 'test yield from' + '-'*10)
+        for fib_res in copy_fib(20):
+        	print(fib_res)
+        	
+       yield from的作用还体现可以像一个管道一样将send信息传递给内层协程，并且处理好了各种异常情况，
+       因此，对于stupid_fib也可以这样包装和使用：
+       
+            def copy_stupid_fib(n):
+            	print('I am copy from stupid fib')
+            	yield from stupid_fib(n)
+            	print('Copy end')
+            print('-'*10 + 'test yield from and send' + '-'*10)
+            N = 20
+            csfib = copy_stupid_fib(N)
+            fib_res = next(csfib)
+            while True:
+            	print(fib_res)
+            	try:
+            		fib_res = csfib.send(random.uniform(0, 0.5))
+            	except StopIteration:
+            		break
+            
+    5.asyncio是Python 3.4版本引入的标准库，直接内置了对异步IO的支持。
         asyncio的编程模型就是一个消息循环。我们从asyncio模块中直接获取一个EventLoop的引用，
         然后把需要执行的协程扔到EventLoop中执行，就实现了异步IO
         
@@ -693,5 +721,158 @@
         # 执行coroutine
         loop.run_until_complete(hello())
         loop.close()
+        
+    6. asyncio是一个基于事件循环的实现异步I/O的模块。通过yield from，我们可以将协程asyncio.sleep的控制权交给事件循环，
+       然后挂起当前协程；之后，由事件循环决定何时唤醒asyncio.sleep,接着向后执行代码。
+    
+        @asyncio.coroutine
+          def smart_fib(n):
+            index = 0
+            a = 0
+            b = 1
+            while index < n:
+                sleep_secs = random.uniform(0, 0.2)
+                yield from asyncio.sleep(sleep_secs)
+                print('Smart one think {} secs to get {}'.format(sleep_secs, b))
+                a, b = b, a + b
+                index += 1
+          
+          @asyncio.coroutine
+          def stupid_fib(n):
+            index = 0
+            a = 0
+            b = 1
+            while index < n:
+                sleep_secs = random.uniform(0, 0.4)
+                yield from asyncio.sleep(sleep_secs)
+                print('Stupid one think {} secs to get {}'.format(sleep_secs, b))
+                a, b = b, a + b
+                index += 1
+          
+          if __name__ == '__main__':
+            loop = asyncio.get_event_loop()
+            tasks = [
+                asyncio.async(smart_fib(10)),
+                asyncio.async(stupid_fib(10)),
+            ]
+            loop.run_until_complete(asyncio.wait(tasks))
+            print('All fib finished.')
+            loop.close()
+            
+        (1) asyncio是一个由python实现的模块，那么我们来看看asyncio.sleep中都做了些什么：
+            sleep创建了一个Future对象，作为更内层的协程对象，通过yield from交给了事件循环；
+            其次，它通过调用事件循环的call_later函数，注册了一个回调函数
+                @coroutine
+                def sleep(delay, result=None, *, loop=None):
+                    """Coroutine that completes after a given time (in seconds)."""
+                    future = futures.Future(loop=loop)
+                    h = future._loop.call_later(delay,
+                                                future._set_result_unless_cancelled, result)
+                    try:
+                        return (yield from future)
+                    finally:
+                        h.cancel()
+                        
+        (2) 通过查看Future类的源码，可以看到，Future是一个实现了__iter__对象的生成器：
+            当我们的协程yield from asyncio.sleep时，事件循环其实是与Future对象建立了练习。
+            每次事件循环调用send(None)时，其实都会传递到Future对象的__iter__函数调用；
+            而当Future尚未执行完毕的时候，就会yield self，也就意味着暂时挂起，等待下一次send(None)的唤醒。
+                class Future:
+                	#blabla...
+                    def __iter__(self):
+                        if not self.done():
+                            self._blocking = True
+                            yield self  # This tells Task to wait for completion.
+                        assert self.done(), "yield from wasn't used with future"
+                        return self.result()  # May raise too.
+                        
+        (3) 当我们包装一个Future对象产生一个Task对象时，在Task对象初始化中，就会调用Future的send(None),
+            并且为Future设置好回调函数
+                class Task(futures.Future):
+                	#blabla...
+                    def _step(self, value=None, exc=None):
+                		#blabla...
+                        try:
+                            if exc is not None:
+                                result = coro.throw(exc)
+                            elif value is not None:
+                                result = coro.send(value)
+                            else:
+                                result = next(coro)
+                		#exception handle
+                        else:
+                            if isinstance(result, futures.Future):
+                                # Yielded Future must come from Future.__iter__().
+                                if result._blocking:
+                                    result._blocking = False
+                                    result.add_done_callback(self._wakeup)
+                		#blabla...
+                 
+                    def _wakeup(self, future):
+                        try:
+                            value = future.result()
+                        except Exception as exc:
+                            # This may also be a cancellation.
+                            self._step(None, exc)
+                        else:
+                            self._step(value, None)
+                        self = None  # Needed to break cycles when an exception occurs.
+                        
+       (4) 预设的时间过后，事件循环将调用Future._set_result_unless_cancelled:
+           这将改变Future的状态，同时回调之前设定好的Tasks._wakeup；在_wakeup中，将会再次调用Tasks._step，这时，
+           Future的状态已经标记为完成，因此，将不再yield self，而return语句将会触发一个StopIteration异常，
+           此异常将会被Task._step捕获用于设置Task的结果。同时，整个yield from链条也将被唤醒，协程将继续往下执行。
+                class Future:
+                	#blabla...
+                    def _set_result_unless_cancelled(self, result):
+                        """Helper setting the result only if the future was not cancelled."""
+                        if self.cancelled():
+                            return
+                        self.set_result(result)
+                
+                    def set_result(self, result):
+                        """Mark the future done and set its result.
+                
+                        If the future is already done when this method is called, raises
+                        InvalidStateError.
+                        """
+                        if self._state != _PENDING:
+                            raise InvalidStateError('{}: {!r}'.format(self._state, self))
+                        self._result = result
+                        self._state = _FINISHED
+                        self._schedule_callbacks()
+                        
+       (5) async和await
+                async def smart_fib(n):
+                	index = 0
+                	a = 0
+                	b = 1
+                	while index < n:
+                		sleep_secs = random.uniform(0, 0.2)
+                		await asyncio.sleep(sleep_secs)
+                		print('Smart one think {} secs to get {}'.format(sleep_secs, b))
+                		a, b = b, a + b
+                		index += 1
+                 
+                async def stupid_fib(n):
+                	index = 0
+                	a = 0
+                	b = 1
+                	while index < n:
+                		sleep_secs = random.uniform(0, 0.4)
+                		await asyncio.sleep(sleep_secs)
+                		print('Stupid one think {} secs to get {}'.format(sleep_secs, b))
+                		a, b = b, a + b
+                		index += 1
+                 
+                if __name__ == '__main__':
+                	loop = asyncio.get_event_loop()
+                	tasks = [
+                		asyncio.ensure_future(smart_fib(10)),
+                		asyncio.ensure_future(stupid_fib(10)),
+                	]
+                	loop.run_until_complete(asyncio.wait(tasks))
+                	print('All fib finished.')
+                	loop.close()
 
 ```
