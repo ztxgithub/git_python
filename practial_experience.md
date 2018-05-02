@@ -637,3 +637,61 @@
 ```
 
 ### virtualenv
+
+### 协程
+
+```shell
+    1.协程看上去也是子程序,但执行过程中,在子程序内部可中断,然后转而执行别的子程序,在适当的时候再返回来接着执行
+    2.优点:
+        A.协程极高的执行效率。因为子程序切换不是线程切换，而是由程序自身控制，因此，没有线程切换的开销，
+          和多线程比，线程数量越多，协程的性能优势就越明显
+        B.不需要多线程的锁机制，因为只有一个线程，也不存在同时写变量冲突，在协程中控制共享资源不加锁，只需要判断状态就好了,
+          所以执行效率比多线程高很多.
+          
+    3.Python的yield不但可以返回一个值，它还可以接收调用者发出的参数
+        用协程，生产者生产消息后，直接通过yield跳转到消费者开始执行，待消费者执行完毕后，
+        切换回生产者继续生产，效率极高
+        
+            consumer函数是一个generator
+            def consumer():
+                r = ''
+                while True:
+                    n = yield r
+                    if not n:
+                        return
+                    print('[CONSUMER] Consuming %s...' % n)
+                    r = '200 OK'
+            
+            def produce(c):
+                c.send(None)   ## 启动生成器
+                n = 0
+                while n < 5:
+                    n = n + 1
+                    print('[PRODUCER] Producing %s...' % n)
+                    r = c.send(n)
+                    print('[PRODUCER] Consumer return: %s' % r)
+                c.close()
+            
+            c = consumer()
+            produce(c)
+            
+    4.asyncio是Python 3.4版本引入的标准库，直接内置了对异步IO的支持。
+        asyncio的编程模型就是一个消息循环。我们从asyncio模块中直接获取一个EventLoop的引用，
+        然后把需要执行的协程扔到EventLoop中执行，就实现了异步IO
+        
+        import asyncio
+        
+        @asyncio.coroutine
+        def hello():
+            print("Hello world!")
+            # 异步调用asyncio.sleep(1):
+            r = yield from asyncio.sleep(1)
+            print("Hello again!")
+        
+        # 获取EventLoop:
+        loop = asyncio.get_event_loop()
+        # 执行coroutine
+        loop.run_until_complete(hello())
+        loop.close()
+
+```

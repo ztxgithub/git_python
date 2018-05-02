@@ -259,6 +259,15 @@
    8.list里面的元素的数据类型也可以不同
         >>> L = ['Apple', 123, True]
         
+   9.list.extend(arg) 方法 :将其他元素追加到list后面
+        传入参数 arg 是可迭代对象,同时可以是生成器(generator),用生成器的好处是在内存中需要实际的数据
+            >>> a = [1, 2]
+            >>> b = [3, 4]
+            >>> a.extend(b)
+            >>> print(a)
+            [1, 2, 3, 4]
+      
+        
    函数
         1.list.sort() 进行升序排序
             >>> a = ['c', 'b', 'a']
@@ -690,6 +699,43 @@
       如果列表元素可以按照某种算法推算出来,那我们是否可以在循环的过程中不断推算出后续的元素呢？这样就不必创建完整的list,
       从而节省大量的空间在Python中,一边循环一边计算的机制，称为生成器：generator。
       
+      (1) 第一个方法 只要把一个列表生成式的[]改成(),正常情况下 使用for循环遍历每一个元素,并且该生成器g,for遍历完一遍后就失效了,
+          因为该生成器只保存一个变量,计算下一个变量时,会删除上一个变量
+          
+      (2) 当调用 包含 yield 函数时,它里面的代码不会执行, 它代表的是一个 generator(生成器),
+          这个代码实际执行是由 for ..in 触发的,这种可以重复使用 该generator(生成器),
+          
+          The first time the "for" calls the generator object created from your function,
+           it will run the code in your function from the beginning until it hits(遇到) yield, 
+           then it'll return the first value of the loop(将会返回 生成器函数中第一个循环的值). Then, 
+           each other call will run the loop you have written in the function one more time,
+            and return the next value, until there is no value to return.
+            
+            for 语句在碰到生成器 generator 的时候， 调用generator.__next__()获取生成器的返回值 
+            generator. __next__()每次调用，可以理解为执行了一次generator() 执行到 yield 的时候，生成器返回了 i 的值
+           并停止。 这就像普通函数碰到 return 时一样，剩下的代码都被忽略了。 不同的地方在于，python 会记录这个停止的位置。 
+           当再次执行generator()的时候，python 从这个停止位置开始执行而不是开头， 
+           再执行generator()，已经没有 yield 语句了， 就抛出了 StopIteration 。这和其他迭代器是类似的。
+            
+      (3) 
+        def gen():
+            while True:
+                hello_world = yield
+                print(hello_world)
+                
+        g = gen()
+        next(g)
+        
+        g.send("have good day")
+        g.send("this is test")
+                
+        send(value) 用 value 对 yield语句赋值( hello_world = value)，再执行接下来的代码直到下个 yield.
+        调用send方法前,必须先调用一次__next__，让生成器执行到 yield 语句处， 才能进行赋值.
+        外面加上 while 循环是为了避免出现send之后， 生成器没有 yield 语句了，抛出 StopIteration 的情况。
+        
+      (4) Python的yield不但可以返回一个值(yield ret_value  在yield后面的就是返回值)，它还可以接收调用者发出的参数
+          ( hello_world = yield, 通过ret_value = generator().send(in_args),则 hello_world 为 in_args)
+      
     2.创建一个generator,
         A.第一个方法 只要把一个列表生成式的[]改成()
             >>> g = (x * x for x in range(10))
@@ -770,7 +816,8 @@
         >>> next(g)
         25
         >>> next(g)
-    4.正常情况下 使用for循环遍历每一个元素
+    4.正常情况下 使用for循环遍历每一个元素,并且该生成器g,for遍历完一遍后就失效了,因为该生成器只保存一个变量,计算下一个变量时,会删除
+       上一个变量
         >>> g = (x * x for x in range(10))
         >>> for n in g:
         ...     print(n)
