@@ -75,3 +75,20 @@
 ```
 
 [参考资料](https://www.jianshu.com/p/ae46c479252d)
+
+## 集成IDE(PyCharm)安装
+
+```shell
+    1.下载地址
+        https://www.jetbrains.com/pycharm/download/#section=windows
+        
+    2.
+        (1)启动PyCharm
+            > ./bin/pycharm.sh
+        (2) 创建快捷键
+            > vim ~/.bashrc
+                alias pycharm="bash /home/jame/soft/pycharm-2018.1.2/bin/pycharm.sh"
+                
+            > source ~/.bashrc  
+      
+```
