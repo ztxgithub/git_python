@@ -638,6 +638,97 @@
 
 ### virtualenv
 
+```shell
+    windows安装使用virtualenv
+        1.新建虚拟环境
+             在当前目录下右键打开cmd，输入virtualenv 虚拟环境名字
+            
+        2.激活虚拟环境
+            1）在当前目录下进入脚本目录 Scripts，并运行activate.bat(只需要输入 activate.bat)
+            结果:
+                (虚拟环境名字) 绝对路径名
+            
+        3.退出虚拟环境
+            在Scripts对应的cmd中输入 deactivate.bat
+            
+    linux安装使用virtualenv
+        1.> sudo apt-get install python-virtualenv
+        2.创建虚拟环境
+            > virtualenv 虚拟环境名(采用默认的python)
+        3.进入虚拟环境空间
+            在对应目录的bin
+            > source activate
+        4.需要创建其他python版本的虚拟环境
+            virtualenv -p /usr/bin/python3 虚拟环境名(采用默认的python)
+            
+        5.退出虚拟环境
+           (虚拟环境名字)  > deactivate
+            
+        
+            
+    B. 安装使用virtualenvwrapper(虚拟环境管理包)
+            (1) windows下
+                     pip install virtualenvwrapper-win
+                    
+            (2) 
+                    A.加入环境变量中
+                        将virtualenvwrapper-win的安装目录加入到系统变量中，这样在cmd中就可以直接输入mkvirtualenv命令，不需要加入
+                         绝对路径
+                                将其C:\Users\Jame\AppData\Local\Programs\Python\Python35-32\Scripts (安装路径)
+                                      加入到 计算机(属性)-> 高级系统设置->环境变量->系统变量(path)编辑
+                        
+                        
+                    (2)设置workon_home环境变量(在进行mkvirtualenv创建虚拟环境后文件夹放在指定目录中)
+                            计算机(属性)-> 高级系统设置->环境变量->系统变量进行新建
+                            变量名: WORKON_HOME
+                            变量值: D:\python_example 
+                        
+            (3) 新建虚拟环境
+                    A.mkvirtualenv env2_test (这种情况下是使用默认路径环境变量的python)
+                    B.mkvirtualenv --python=(python3安装路径到可执行文件) (虚拟环境名字)
+                      mkvirtualenv -p (python3安装路径到可执行文件) (虚拟环境名字)
+                       例如：
+                        mkvirtualenv 
+                                    --python=C:\Users\Administrator\AppData\Local\Programs\Python\Python35\python.exe 
+                                    python35_test
+            (4) 查看安装的所有虚拟环境
+                    workon
+            (5) 进入虚拟环境
+                    workon 虚拟环境名
+            (6) 退出虚拟环境
+                    deactivate
+                    
+                    
+            linux下
+                    (1) 安装
+                        > pip install virtualenvwrapper
+                    (2) 找到virtualenvwrapper的执行脚本
+                        > sudo find / -name virtualenvwrapper.sh
+                            结果:
+                                /usr/local/bin/virtualenvwrapper.sh
+                           
+                    (3) > vim ~/.bashrc
+                             export WORKON_HOME=$HOME/.virtualenvs  
+                             source /usr/local/bin/virtualenvwrapper.sh
+                             
+                    (4) > mkvirtualenv pyscrapy
+                            结果:
+                                Running virtualenv with interpreter /usr/bin/python2
+                                New python executable in /home/jame/.virtualenvs/pyscrapy/bin/python2
+                                Also creating executable in /home/jame/.virtualenvs/pyscrapy/bin/python
+                                Installing setuptools, pkg_resources, pip, wheel...done.
+                                virtualenvwrapper.user_scripts creating /home/jame/.virtualenvs/pyscrapy/bin/predeactivate
+                                virtualenvwrapper.user_scripts creating /home/jame/.virtualenvs/pyscrapy/bin/postdeactivate
+                                virtualenvwrapper.user_scripts creating /home/jame/.virtualenvs/pyscrapy/bin/preactivate
+                                virtualenvwrapper.user_scripts creating /home/jame/.virtualenvs/pyscrapy/bin/postactivate
+                                virtualenvwrapper.user_scripts creating /home/jame/.virtualenvs/pyscrapy/bin/get_env_details
+                                
+                    (5) 
+                            
+    
+
+```
+
 ### 协程
 
 ```shell

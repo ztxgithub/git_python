@@ -111,3 +111,52 @@
 ```
 
 ## 安装 navicat for mysql
+
+## windows python 安装
+
+```shell
+    安装目录:C:\Users\Jame\AppData\Local\Programs\Python\Python35-32
+```
+
+## windows pip 安装
+
+```shell
+    1.http://www.liriansu.com/install-pip-on-windows
+        python get-pip.py
+    2.在用everything 搜索 pip.exe 将其绝对路径加入到 计算机(属性)-> 高级系统设置->环境变量->系统变量(path)编辑
+    
+
+```
+
+## pip使用豆瓣的镜像源
+
+```shell
+    在windows上和linux都能用
+    类似命令:
+    (1) 安装第三方模块:
+          pip  install  -i  https://pypi.doubanio.com/simple/   django  (有时候也不行,毕竟源和官网不同步)
+          pip install django
+          
+    (2) 卸载第三方模块:
+            pip uninstall django
+        
+    
+    1.在linux 上 编写 $HOME/.config/pip/pip.conf
+        [global]
+        timeout = 60
+        index-url = http://pypi.douban.com/simple
+        trusted-host = pypi.douban.com
+        
+    windows 安装失败用到的地址
+        https://www.lfd.uci.edu/~gohlke/pythonlibs/ 
+        在该网址中找到对应的python版本的源进行下载安装
+        pip install 下载包
+         
+```
+
+## pip 内容介绍
+
+```shell
+    1.包的依赖关系
+        > pip list 
+```
