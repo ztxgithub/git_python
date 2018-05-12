@@ -723,7 +723,7 @@
                                 virtualenvwrapper.user_scripts creating /home/jame/.virtualenvs/pyscrapy/bin/postactivate
                                 virtualenvwrapper.user_scripts creating /home/jame/.virtualenvs/pyscrapy/bin/get_env_details
                                 
-                    (5) 
+                    (5) >  mkvirtualenv --python=/usr/bin/python3 py3scrapy
                             
     
 
