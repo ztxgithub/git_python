@@ -134,7 +134,7 @@
     在windows上和linux都能用
     类似命令:
     (1) 安装第三方模块:
-          pip  install  -i  https://pypi.doubanio.com/simple/   django  (有时候也不行,毕竟源和官网不同步)
+          pip  install  -i  https://pypi.douban.com/simple/   django  (有时候也不行,毕竟源和官网不同步)
           pip install django
           
     (2) 卸载第三方模块:
@@ -159,4 +159,30 @@
 ```shell
     1.包的依赖关系
         > pip list 
+```
+
+## 创建针对伯乐在线文章爬虫
+
+```shell
+    windowns下
+    1.cmd> mkvirtualenv article_spider
+    2.
+        (1) <article_spider> : pip install scrapy
+        (2) <article_spider> : pip install -i  https://pypi.douban.com/simple/ scrapy
+        安装的过程中如果发现哪个库安装不了，则从http://www.lfd.uci.edu/~gohlke/pythonlibs/下载
+        
+        安装 Scrapy 出错，Microsoft Visual C++ 14.0 is required
+        到 http://www.lfd.uci.edu/~gohlke/pythonlibs/#twisted 下载并安装 Twisted
+            Twisted‑17.5.0‑cp36‑cp36m‑win_amd64.whl），cp后面是python版本，amd64代表Amd 架构64位
+            cmd> pip install C:\Users\CR\Downloads\Twisted-17.5.0-cp36-cp36m-win_amd64.whl
+        
+    3.通过scrapy新建工程
+        (1) 在指定的工程目录下，cmd 打开 输入 "workon"，在输入 "workon article_spider"
+        (2) 在虚拟环境中(article_spider)路径名: scrapy startproject ArticleSpider
+        
+    4.通过PyCharm导入以上新建的工程
+    5. 生成一个爬虫模板
+        (1) 需要进行工程目录(ArticleSpider) cmd> cd ArticleSpider
+        (2)(article_spider)路径名: scrapy genspider jobbole blog.jobbole.com(域名)
+        
 ```

@@ -48,6 +48,19 @@
         >>> m.group(2)
         '12345'
         
+        嵌套分组由父循环到子循环
+            import re
+            line = "boobby123"
+            regex_str = "((boby|boobby)123)"
+            match_obj = re.match(regex_str,line)
+            if match_obj:
+                print("group1:%s" % match_obj.group(1))
+                print("group2:%s" % match_obj.group(2))
+                
+           结果:
+                group1:boobby123
+                group2:boobby
+        
     6.贪婪匹配
         (1) 正则匹配默认是贪婪匹配，也就是匹配尽可能多的字符。（可以从字符串的由后往前进行匹配）
                 举例如下，由于\d+采用贪婪匹配，直接把后面的0全部匹配了，结果0*只能匹配空字符串了
@@ -55,15 +68,22 @@
                 ('102300', '')
                 
                 line = "booooobb123"
-                regex_str = ".*(b.*b).*"
+                regex_str = ".*(b.*b).*"    //贪婪匹配
                 match_obj = re.match(regex_str,line)
                 if match_obj:
-                    print(match_obj.group(1))
-                    
+                    print(match_obj.group(1)) 
                 结果:
                     bb
                 
         (2) \d+采用非贪婪匹配（也就是尽可能少匹配）, 加上 ? (相当与从前面开始匹配)
+                line = "booooobb123"
+                regex_str = ".*?(b.*?b).*" // ? 非贪婪匹配
+                match_obj = re.match(regex_str,line)
+                if match_obj:
+                    print(match_obj.group(1)) 
+                结果:
+                    bb
+                
         
     7.编译
       当我们在Python中使用正则表达式时，re模块内部会干两件事情：
@@ -82,5 +102,4 @@
         ('010', '12345')
         >>> re_telephone.match('010-8086').groups()
         ('010', '8086')
-
 ```
