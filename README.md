@@ -184,5 +184,15 @@
     5. 生成一个爬虫模板
         (1) 需要进行工程目录(ArticleSpider) cmd> cd ArticleSpider
         (2)(article_spider)路径名: scrapy genspider jobbole blog.jobbole.com(域名)
-        
+     
+    6.运行scrapy
+        (article_spider)路径: scrapy crawl jobbole
+            其中 jobbole则对应于spiders目录下模块爬虫名
+        会出现错误:
+            ImportError:No module named 'win32api'
+        解决方法:
+            (article_spider)路径:pip install -i  https://pypi.douban.com/simple/ pypiwin32
+            
+        再次运行scrapy命令
+            (article_spider)路径: scrapy crawl jobbole
 ```

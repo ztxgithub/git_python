@@ -850,3 +850,85 @@
             
 
 ```
+
+### xpath 
+
+```shell
+    1.特点
+        (1).xpath使用路径表达式在xml和html中进行导航
+        (2).xpath包含标准函数库
+        (3).xpath是一个w3c的标准
+        
+    2.xpath节点关系
+        (1) 父节点
+        (2) 子节点
+        (3) 同胞节点(兄弟节点)
+        (4) 先辈节点 
+                包括父辈,祖父辈等    
+        (5) 后代节点  
+        
+    3.xpath语法
+        (1) article
+                选取所有article元素的所有子节点
+                
+        (2) /article
+                选取根元素article
+                
+        (3) article/a
+                选取所有属于article的子元素的a元素
+                
+        (4) //div
+                选取所有div子元素(无论出现在文档任何地方)
+                
+        (5) article//div 
+                选取所有属于article元素的后代的div元素,不管它出现在article之下的任何位置
+                
+        (6) //@class
+                选取所有名为class的属性
+                
+        (7) /article/div[1]
+                选取属于article子元素的第一个div元素
+                
+        (8) /article/div[last()]
+                选取属于article子元素的最后一个div元素
+                
+        (9) /article/dev[last()-1]
+                选取属于article子元素的倒数第二个div元素
+                
+        (10) //div[@lang]
+                选取所有拥有lang属性的div元素
+                
+        (11) //dvi[@lang='eng']
+                选取所有lang属性为eng的div元素
+                
+        (12) /div/*
+                选取属于div元素的所有子节点
+                
+        (13) //*
+                选取所有元素
+                
+        (14) //div[@*]
+                选取所有带属性的title元素
+                
+        (15) /div/a | //div/p
+                选取所有div元素的a和p元素
+                
+        (16) //span | //ul
+                选取文档中的span和ul元素
+                
+        (17) article/div/p| //span
+                选取所有属于article元素的div元素的p元素以及文档中所有的span元素
+                
+    4.如果想要获得某个页面的节点的xpath，先F12,再点Elements,点击左上角(select an element in the page to inspect it),
+      在调试页面右键选择copy->copy Xpath
+      
+    5.response.xpath放回的值的extract()方法，是一个包含内容的数组
+            title =  response.xpath('//div[@class="entry-header"]/h1/text()').extract()[0]
+            结果:
+                title为 '2016 腾讯软件开发面试题（部分）'
+                
+    6.如果在一个标签中通过某个属性名中部分唯一值进行查找
+            (1) 通过xpath中的contains内置方法contains(@属性名,属性值)
+                >>> response.xpath("//span[contains(@class, 'vote-post-up')]")
+                    [<Selector xpath="//span[contains(@class, 'vote-post-up')]" data='<span data-post-id="110287" class=" btn-'>]
+```
