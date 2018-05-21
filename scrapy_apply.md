@@ -23,6 +23,19 @@
                     ['2016 腾讯软件开发面试题（部分）']
                 >>> title.extract()[0]
                     '2016 腾讯软件开发面试题（部分）'
+                    
+    2. extract_first() (只对scrapy的response.css或则response.xpath返回值有效)
+           取数组的第一个元素,当该数据为NULL时可以传递默认参数
+                comment_text_css = response.css("a[href='#article-comment'] span::text").extract_first()
+                这样是为了防止 response.css("a[href='#article-comment'] span::text").extract()[0] 
+                数组为内容为空，取第一个元素抛异常
+                
+     
+    3.在提取某些网站时，有的时候是相对于当前域名(http://blog.jobbole.com)的 相对路径例如：114009/,
+      实际上是指向http://blog.jobbole.com/114009/, 所以要 response.url + post_url(相对路径)
+      调用urllib模块
+      from urllib import parse
+      parse.urljoin(response.url,post_url)
 ```
 
 ## css 选择器
@@ -36,11 +49,18 @@
             选择id为container的节点
             
         (3) .container
-            选取所有class包含的cont ainer的节点
+            选取所有class包含的其class="container"的节点
+            (可以是class="container",也可以是 class="123 container 345")
+            <div class="entry-header"> 对应于 response.css(".entry-header")
+            
             
         (4) li a
-            选取所有li下的所有a节点
-          
+            选取所有li节点下的所有a节点
+          <div class="entry-header">
+	            <h1>2016 腾讯软件开发面试题（部分）</h1>
+		  </div>
+		  选取该class下的h1节点
+		    response.css(".entry-header h1")
         (5) ul + p
             选取ul后面的第一个元素
             
@@ -65,5 +85,88 @@
         (12) a[href$=".jpg"]
             选取所有href属性值以".jpg"结尾的a元素
             
-        (13) input
+        (13) input[type=radio]:checked
+            选择选中的radio的元素
+            
+        (14) div:not(#container)
+            选取所有id非container的div属性
+            
+        (15) li:nth-child(3)
+            选取第三个li元素
+            
+        (16) tr:nth-child(2n)
+            第偶数个tr
+            
+    2.获取某个节点下的内容
+        >>> response.css(".entry-header h1::text").extract()
+            ['2016 腾讯软件开发面试题（部分）']
+            
+        通过class="entry-meta-hide-on-mobile"找到对应的p节点取其内容
+        >>> response.css("p.entry-meta-hide-on-mobile::text").extract()[0].strip()
+        '2017/02/18 ·'
+        
+    3.通过css选择某个节点的中某个属性值
+        获取class值为post-thumb节点下面的a节点的href的值
+        <div class="post-thumb">
+            <a href="http://blog.jobbole.com/114009/" >
+		</div>
+		
+		>>> response.css(".post-thumb a::attr(href)")
+		
+    4.如果一个节点的class同时包含多个值
+        <a class="next page-numbers" href="http://blog.jobbole.com/all-posts/page/2/">下一页 »</a>
+        选出该节点,class值同时有next和page-numbers
+        
+        >>> response.css(".next.page-numbers")
+```
+
+## scrapy中spiders目录下parse
+
+```shell
+    1.其中response.css()或则response.xpath()返回的是 selector对象
+      而 selector对象还可以 selector.css()进行递归提取
+      例如:
+        post_nodes = response.css("#archive .floated-thumb .post-thumb a")
+        for post_node in post_nodes:
+            image_url = post_node.css("img::attr(src)").extract_first("")
+            post_url = post_node.css("::attr(href)").extract_first("")
+            
+    2.  在第一层提取相关的url，通过yield Request可以向下传递参数进行函数处理
+        其中第一个参数url是给回调函数self.parse_detail用的，在parse_detail函数中的response.css()或则
+        response.css()是针对url=parse.urljoin(response.url,post_url)这个url的，如果想再向
+        回调函数self.parse_detail传递一些参数,则使用第二个参数 meta
+        yield Request(url=parse.urljoin(response.url,post_url),
+                      meta={"front_image_url":image_url}, 
+                      callback=self.parse_detail)
+```
+
+## pipelines.py
+
+```shell
+    1.如果要使pipelines.py生效，则在settings.py中去注释
+            ITEM_PIPELINES = {
+                                 'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
+                              }
+                              
+    2.items.py与pipelines.py连用,在spiders/jobbole.py中回调函数 yield article_item(Items),会直接跳转到
+      pipelines.py中的 process_item函数,pipelines.py主要用作数据存储
+```
+
+## scrapy 做到图片的下载
+
+```shell
+    1.在settings.py
+        ITEM_PIPELINES = {
+                           'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
+                           'scrapy.pipelines.images.ImagesPipeline':1
+                         }
+                       
+        # 从哪里去下载，需要从items.py中取哪一项 front_image_url对应于item中                 
+        IMAGES_URLS_FIELD = "front_image_url"   
+        
+        
+                         
+        在spiders/jobbole.py中回调函数 yield article_item(Items),会直接跳转到settings.py设置的item_pipeline
+        管道中,:num,num越小越先被调用，所以ImagesPipeline要比ArticlespiderPipeline先调用
+
 ```

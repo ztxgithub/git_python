@@ -271,3 +271,12 @@
         >>> tag_list
             '123,345,111'
 ```
+
+## 系统函数
+
+- 获取该文件的当前路径
+```shell
+    import os
+    project_dir = os.path.dirname(os.path.abspath(__file__))
+    IMAGES_STORE = os.path.join(project_dir, "images")
+```
