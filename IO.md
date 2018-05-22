@@ -125,6 +125,9 @@
                 >>> json.dumps(d)
                 '{"age": 20, "score": 88, "name": "Bob"}'
                 
+            (1) 注意如果json中存在中文将参数ensure_ascii改为False
+                    json.dumps(dict(item), ensure_ascii=False)
+                
             JSON反序列化:
                 >>> json_str = '{"age": 20, "score": 88, "name": "Bob"}'
                 >>> json.loads(json_str)

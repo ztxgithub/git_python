@@ -10,6 +10,12 @@
 
 ```
 
+## scrapy 程序运行流程
+```shell
+    1.先在项目的spiders目录下jobbole.py进行运行
+    2.再到自定义的pipeline.py中进行运行,运行的顺序根据settings.py中的设置的参数有关
+```
+
 ## 相关知识
 
 ```shell
@@ -162,11 +168,46 @@
                          }
                        
         # 从哪里去下载，需要从items.py中取哪一项 front_image_url对应于item中                 
-        IMAGES_URLS_FIELD = "front_image_url"   
-        
+        IMAGES_URLS_FIELD = [front_image_url]      ##从什么地方下载
+        project_dir = os.path.dirname(os.path.abspath(__file__))
+        IMAGES_STORE = os.path.join(project_dir, "images")    ## 下载图片保存到本地哪个路径
+        #图片过滤规则
+        IMAGES_MIN_HEIGHT = 100  #图片最小高度
+        IMAGES_MIN_WIDTH = 100   #图片最小宽度
         
                          
         在spiders/jobbole.py中回调函数 yield article_item(Items),会直接跳转到settings.py设置的item_pipeline
         管道中,:num,num越小越先被调用，所以ImagesPipeline要比ArticlespiderPipeline先调用
+        
+    2.安装PIL模块
+       (虚拟环境下)>  pip install -i  https://pypi.douban.com/simple/ pillow
+       
+    3.需要将jobbole.py中
+             article_item["front_image_url"] = front_image_url
+             该为
+             article_item["front_image_url"] = [front_image_url]
 
+```
+
+## scrapy 将item 转化为 json文件
+```shell
+    1.
+        from scrapy.exporters import JsonItemExporter
+        
+    2.在pipeline.py 中定义
+    
+            class JsonExporterPipeline(object):
+                # 调用scrapy提供的json exporter 导出json文件
+                def __init__(self):
+                    self.file = open("article_exporter.json", "wb")
+                    self.exporter = JsonItemExporter(self.file, encoding="utf-8", ensure_ascii=False)
+                    self.exporter.start_exporting()
+            
+                def close_spider(self, spider):
+                    self.exporter.finish_exporting()
+                    self.file.close()
+            
+                def process_item(self, item, spider):
+                    self.exporter.export_item(item)
+                    return item
 ```

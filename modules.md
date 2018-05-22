@@ -932,3 +932,15 @@
                 >>> response.xpath("//span[contains(@class, 'vote-post-up')]")
                     [<Selector xpath="//span[contains(@class, 'vote-post-up')]" data='<span data-post-id="110287" class=" btn-'>]
 ```
+
+## codecs(文件的操作)
+```shell
+    1.打开文件
+        file =codecs.open("article.json", "w", encoding="utf-8")
+    2.写内容到文件
+        file.write(str)
+        
+    3.关闭文件
+        file.close()
+
+```
