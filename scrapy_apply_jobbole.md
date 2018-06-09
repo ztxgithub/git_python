@@ -149,7 +149,8 @@
 ## pipelines.py
 
 ```shell
-    1.如果要使pipelines.py生效，则在settings.py中去注释
+    1.如果要使pipe-+
+    lines.py生效，则在settings.py中去注释
             ITEM_PIPELINES = {
                                  'ArticleSpider.pipelines.ArticlespiderPipeline': 300,
                               }

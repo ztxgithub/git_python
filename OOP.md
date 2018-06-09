@@ -18,6 +18,43 @@
 
 ```
 
+## 其他技巧
+
+```shell
+    1. @staticmethod和@classmethod 都可以直接类名.方法名()来调用(而不需要先实例化一个对象,再通过这个实例化对象调用方法)
+        (1) @classmethod 不需要self参数(不同于类的普通方法)，但第一个参数需要是表示自身类的cls参数,
+             因为持有cls参数，可以来调用类的属性，类的方法，实例化对象等，避免硬编码。
+                class A(object):  
+                        bar = 1  
+                        def foo(self):  
+                            print 'foo'
+                            
+                        @classmethod  
+                        def class_foo(cls):   # 第一个参数一定是cls 
+                            print 'class_foo'   
+                            print cls.bar    # 可以通过cls来调用自身的bar属性
+                            cls().foo()      # 可以通过cls调用类的其他方法
+                            
+            @classmethod 方法的使用
+                A.class_foo()
+                
+        (2) @staticmethod不需要表示自身对象的self和自身类的cls参数，在@staticmethod中要调用到这个类的一些属性方法,
+            只能直接类名.属性名或类名.方法名。
+                 class A(object):  
+                        bar = 1  
+                        def foo(self):  
+                            print 'foo'
+                            
+                        @staticmethod  
+                        def static_foo():  #定义为 @staticmethod 的函数不需要self 参数和 cls 参数
+                            print 'static_foo'  
+                            print A.bar       #需要调用类中的属性,只能是 类名.属性名
+                            
+            
+            @staticmethod 方法的使用
+                 A.static_foo()
+```
+
 ## 面向对象相关编程技巧
 
 ```shell
