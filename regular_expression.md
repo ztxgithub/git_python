@@ -4,6 +4,13 @@
 
 ```shell
 
+    知识点：
+        (1) 默认情况下正则表达式是匹配全文的一行
+            如果要匹配范围为全文,则增加传入的参数 re.DOTALL
+            match_obj = re.match('.*name="_xsrf" value="(.*?)"', 
+                                 response_text,
+                                 re.DOTALL)
+
     1.Python提供re模块，包含所有正则表达式的功能
     2.强烈建议使用Python的r前缀，就不用考虑字符串转义问题:
         s = r'ABC\-001' # Python的字符串

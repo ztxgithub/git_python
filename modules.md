@@ -731,6 +731,17 @@
                 
        (11) 指定超时，传入以秒为单位的timeout参数：
                 >>> r = requests.get(url, timeout=2.5) # 2.5秒后超时
+                
+    3.详细使用具体查看 requests 文档
+    4.注意事项：
+        (1) requests 模块用 get() 方法时, 传入参数中headers中user-agent字段的默认设置为python2或则python3,
+            而不是浏览器的
+                Mozilla/5.0 (Windows NT 6.1; Win64; x64) 
+                AppleWebKit/537.36 (KHTML, like Gecko)
+                Chrome/63.0.3239.108 
+                Safari/537.36
+            这样有些网站的服务器会检测user-agent字段合不合法，如果不合法,则会返回 状态码为500的错误
+            
 ```
 
 ### XML
@@ -858,6 +869,7 @@
         (1).xpath使用路径表达式在xml和html中进行导航
         (2).xpath包含标准函数库
         (3).xpath是一个w3c的标准
+        (4) xpath 筛选中可以有 或 的情况
         
     2.xpath节点关系
         (1) 父节点
@@ -931,6 +943,9 @@
             (1) 通过xpath中的contains内置方法contains(@属性名,属性值)
                 >>> response.xpath("//span[contains(@class, 'vote-post-up')]")
                     [<Selector xpath="//span[contains(@class, 'vote-post-up')]" data='<span data-post-id="110287" class=" btn-'>]
+                    
+    7.考虑到xpath可以写出 筛选多种情况(兼容老版本和新版本样式的不同)
+        response.xpath("//span[contains(@class, 'vote-post-up')] | //span[contains(@class, 'vote-post')]")
 ```
 
 ## codecs(文件的操作)

@@ -167,6 +167,19 @@
         404
 ```
 
+- filter() 函数
+
+```shell
+    filter(function, sequence)
+        对sequence中的item依次执行function(item)，将执行结果为True的item
+        组成一个List/String/Tuple（取决于sequence的类型）返回
+        
+    >>> def f(x): return x % 2 != 0 and x % 3 != 0 
+    >>> filter(f, range(2, 25)) 
+    结果:
+    [5, 7, 11, 13, 17, 19, 23]
+```
+
 - super继承
 
 ```shell
@@ -261,6 +274,8 @@
 
 - str.strip() :把末尾的'\n'删掉
 
+- str.startswith(start_str): 判断 str 字符串是不是以 start_str 开头的
+
 - join 函数
 ```shell
     1.对应字符串的join，第二个参数为list，则在形成字符串中,每个list元素加上join的第一个参数
@@ -272,6 +287,17 @@
             '123,345,111'
 ```
 
+- str.format()
+
+```shell
+    通过占位符的形式,格式化字符串
+    例如:
+        str_occpy = "this is num={0}, this is id = {1}"
+        str_occpy.format(1,12)
+        结果:
+            str_occpy = "this is num=1, this is id = 12"
+```
+
 ## 系统函数
 
 - 获取该文件的当前路径
@@ -279,4 +305,15 @@
     import os
     project_dir = os.path.dirname(os.path.abspath(__file__))
     IMAGES_STORE = os.path.join(project_dir, "images")
+```
+
+## if else 表达式
+
+```shell
+    
+    变量名 = 判断式为true的值 if 判断式 else 判断式为false的值
+    
+    例如:
+     b = 123 if a == 0 else -1
+     如果 a 等于0, 则 b 被赋值为 123, 否则 b 被赋值为 -1
 ```

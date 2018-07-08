@@ -20,7 +20,7 @@
 
 ```shell
     1.要对某个url进行调试，在运行后这个命令后已经获取url的内容，这样接下来就可以在cmd进行相关的调试
-        (article_spider)项目路径> scrapy shell http://blog.jobbole.com/110287/
+        A.(article_spider)项目路径> scrapy shell http://blog.jobbole.com/110287/
             (1) >>> title = response.xpath('//div[@class="entry-header"]/h1/text()');
                 >>> title
                     结果：
@@ -29,6 +29,11 @@
                     ['2016 腾讯软件开发面试题（部分）']
                 >>> title.extract()[0]
                     '2016 腾讯软件开发面试题（部分）'
+                    
+        B. 在 scrapy shell 中,向url请求数据时,默认的headers中user_agent为python2,如果想要以浏览器的身份去请求,
+                (article_spider) D:\python_example\ArticleSpider\ArticleSpider>  scrapy shell -s
+                 USER_AGENT="Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 
+                 Chrome/63.0.3239.108 Safari/537.36"  https://www.zhihu.com/question/281967318
                     
     2. extract_first() (只对scrapy的response.css或则response.xpath返回值有效)
            取数组的第一个元素,当该数据为NULL时可以传递默认参数
@@ -51,7 +56,7 @@
         (1) *
             选择所有节点
             
-        (2) #container
+        (2) #container    (这个比较常用)     
             选择id为container的节点
             
         (3) .container
@@ -124,6 +129,21 @@
         选出该节点,class值同时有next和page-numbers
         
         >>> response.css(".next.page-numbers")
+        
+    5.筛选出 class 的 子孙代元素 或则 子代元素
+    
+        <div class="NumberBoard-item">
+            <div class="NumberBoard-itemInner">
+                <div class="NumberBoard-itemName">"子孙代元素"</div>
+                "第一层子元素"
+            </div>
+        </div>
+        
+        (1) 提取出子代元素
+                >>> response.css(".NumberBoard-item > .NumberBoard-itemInner::text")
+                
+        (2) 提取出子孙代元素
+                >>> response.css(".NumberBoard-item  .NumberBoard-itemName::text")
 ```
 
 ## scrapy中spiders目录下parse
