@@ -11,6 +11,11 @@
         print("hello" "world")
         结果:
             helloworld
+            
+    2. 可以查看 utf-8 对应的 中文
+        >>> print("\u767b\u5f55\u6210\u529f")
+        结果:
+            登录成功
 ```
 
 - 对于 代码块 : 所有的代码都要缩进

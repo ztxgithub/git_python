@@ -959,3 +959,18 @@
         file.close()
 
 ```
+
+## 图片处理
+
+```shell
+    from PIL import Image
+    
+    # 打开图片
+    im = Image.open("xxx.jpg")
+    
+    # 显示图片
+    im.show()
+    
+    # 关闭句柄
+    im.close()
+```

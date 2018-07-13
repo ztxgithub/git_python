@@ -34,6 +34,9 @@
                         # 使用session进行post 方法,而不是每次都用requests.post()
                         response_text = session.post(post_url, data = post_data, headers=headers)
                         
+        如果在 get_xsrf() 函数中用到 使用session进行get方法, 则 get_captcha() 获取登录的验证码一定要通过
+        使用session进行get方法
+                        
     (4) 传统的session对象 session.cookies.save() 的 cookies类是没有save()方法的,
         可以通过
             # 保证python2 和 python3 的兼容代码
@@ -59,12 +62,113 @@
         False,则会重定向到新的url而且返回的状态码为200,这样不太符合业务, 我们需要知道要求的url返回的状态码
         而不是重定向后的状态码.
                 session.get(inbox_url, headers=headers, allow_redirects=False)
+                
+    (8) 知乎的防爬机制： 同一个ip 或则 同一个 user_agent, request 请求频率过快
+```
+
+## scrapy 框架知识
+
+```shell
+    1.scrapy 框架默认是先从 def start_requests(self), 这个方法在 scrapy 类中 有默认的实现
+                例如:
+    
+                def start_requests(self):
+                    cls = self.__class__
+                    if method_is_overridden(cls, Spider, 'make_requests_from_url'):
+                        warnings.warn(
+                            "Spider.make_requests_from_url method is deprecated; it "
+                            "won't be called in future Scrapy releases. Please "
+                            "override Spider.start_requests method instead (see %s.%s)." % (
+                                cls.__module__, cls.__name__
+                            ),
+                        )
+                        for url in self.start_urls:
+                            yield self.make_requests_from_url(url)
+                    else:
+                        for url in self.start_urls:
+                            yield Request(url, dont_filter=True)  #其中这里没有定义 callback 方法,则默认为 parse 
+                            
+        所以我们如果要在请求页面前先进行 登录, 则可以重载 start_requests 方法, 现在 start_requests 方法中进行用户的登录,
+        在进行 prase 的解析方法
+        
+    2.  def do_insert(self, cursor, item)   
+            传入参数 item, 我们可以知道 它是哪个 class,例如:
+                item.__class__.__name__ == "JobBoleArticleItem"
+                
+                
+            def do_insert(self, cursor, item):
+                    """
+                        根据不同的 item 构建不同的 sql 语句并插入到 MySQL 中
+                    """
+            
+                    if item.__class__.__name__ == "JobBoleArticleItem": # 这种硬编码的方式,在后续修改的时候比较麻烦
+                        #执行具体得插入
+                        insert_sql = "xxx"
+                        cursor.execute(insert_sql, XXXXX)
+                        
+    3.在 settings.py 定义了参数,例如:
+            SQL_DATETIME_FORMAT = "%Y-%m-%d %H:%M:%S"
+            SQL_DATE_FORMAT = "%Y-%m-%d"
+            
+       需要在其他文件进行引用,则需要 
+            from ArticleSpider.settings import SQL_DATETIME_FORMAT, SQL_DATE_FORMAT
+            
+       这样就可以继续引用了
+       
+    4.错误解析
+       (1) MySQL 中 出现 "Unknown column 'comments_nums' in 'field list'" , 
+           说明该 comments_nums 列在数据库表结构中不存在
+            
+       (2) "Duplicate entry "xxx" for key 1
+            说明 插入重复数据导致主键冲突
+        
+    5.在 debug 进行 yield 异步调试时
+          可以先修改代码 以使它能够同步调试, 例如 在循环的 yield 语句中 加入 break 等等;
+    6.
+        """
+            当数据库中出现插入冲突(主键相同),使用 MySQL 特有的语句 使得
+            主键不动, 只更新指定的字段
+        """
+        insert_sql = """
+                               insert into zhihu_answer(zhihu_id, url, 
+                               question_id, author_id, content, praise_num, 
+                               comments_num, create_time, update_time,
+                               crawl_time) 
+                               values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                               ON DUPLICATE KEY UPDATE content=values(content),
+                               comments_num=values(comments_num), praise_num=values(praise_num),
+                               update_time=values(update_time);
+                      """
+                      这里如果插入一条数据,其主键 zhihu_id 已经存在, 则对已存在的记录 只更新 content，
+                      comments_num, praise_num, update_time 等字段
+                      
+    7.在 scrapy 中 登录(login_url)的时候需要验证码(captcha_url), 一定要确保 请求这 2个url的 cookies 一致,
+      详细内容参照知乎登录代码, 提示 在 scrapy.Request(login_url)时, 在 response 返回函数中 重新 yield 
+      scrapy.Request(captcha_url)
+                      
 ```
 
 ## 知乎业务
 
 ```shell
-    
+    1.使用 scrapy 框架进行深度优先爬虫顺序
+            先进入 def start_requests(self), 再进入  def login(self, response), 再进入  def check_login(self, response)
+            再进入 默认的方法 parse(), 在 parse 中处理 response 返回中页面, 提取出该页面的所有 url, 再从中提取出 关于
+            question 的 url(https://www.zhihu.com/question/20702054), 再向 每个 question 的 url 进行请求
+            
+            yield scrapy.Request(request_url, headers=headers, callback=self.parse_question), 收到响应的
+            response再 在 parse_question中进行 question 相关的解析, 解析完后 yield question_item 交给 pipeline.py
+            进行数据库相关操作, 同时每一个 question 解析中, 向 answer 请求 
+            yield scrapy.Request(self.start_answer_url.format(question_id, 5, 0),
+                             headers=headers,
+                             callback=self.parse_answer)
+                             
+            其中初始的answer_url 是 在google浏览器中按F12进行网络调试,按下知乎中的 "查看更多的按钮", 
+            在network中查看相应的url
+            例如https://www.zhihu.com/api/v4/questions/20899988/answers?
+                include=.....offset=13&limit=5&sort_by=default
+
+            
 
 ```
  
@@ -105,7 +209,9 @@
                 comment_count: 283,
                 content:回答的内容
                 
-    3.对于知乎的爬取则采用深度优先算法,
+    3.对于知乎的爬取则采用深度优先算法
+    4. 知乎登录时请求验证码的 url: "https://www.zhihu.com/captcha.gif?r=时间戳*1000&type=login
+                               https://www.zhihu.com/captcha.gif?r=1531232894046&type=login
 
 ```
 

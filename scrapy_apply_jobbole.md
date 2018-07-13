@@ -283,6 +283,16 @@
         # 这里会调用JobBoleArticleItem()中的预处理函数(input_processor),以及output_processor
         article_item = item_loader.load_item()
         
+        
+        """
+            #############注意#################
+            在用 item_loader.add_css 或则 item_loader.add_value后, 不用第二个参数是 list, 还是一个值(response.url)
+            到 items.py 中 
+               class JobBoleArticleItem(scrapy.Item)：
+                    
+                    self["url"]  ---> 这是 list , 将 list 转化为 字符串, 可以用 str = "".join(self["url"])
+        """
+        
     3.在items.py 中
         from datetime import datetime
         # MapCompose类可以将我们对item调用任何多的函数，主要解决对item中各个字段进行处理

@@ -193,6 +193,23 @@
                     ## 不需要commit twisted自动帮我们commit
                                     
     4.github 上 scrapy-djangoitem
+    5.
+        """
+            当数据库中出现插入冲突(主键相同),使用 MySQL 特有的语句 使得
+            主键不动, 只更新指定的字段
+        """
+        insert_sql = """
+                               insert into zhihu_answer(zhihu_id, url, 
+                               question_id, author_id, content, praise_num, 
+                               comments_num, create_time, update_time,
+                               crawl_time) 
+                               values(%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                               ON DUPLICATE KEY UPDATE content=values(content),
+                               comments_num=values(comments_num), praise_num=values(praise_num),
+                               update_time=values(update_time);
+                      """
+                      这里如果插入一条数据,其主键 zhihu_id 已经存在, 则对已存在的记录 只更新 content，
+                      comments_num, praise_num, update_time 等字段
 
 ```
 
