@@ -262,5 +262,16 @@
         
     3.生成一个爬虫模板
         (article_spider) D:\python_example\ArticleSpider\ArticleSpider> scrapy genspider zhihu www.zhihu.com
+        注意:
+            genspider 没有指明特定的模板时, 默认的是使用 basic 模板
+```
+
+## 知乎调试信息
+
+```shell
+         在 scrapy shell 中,向url请求数据时,默认的headers中user_agent为python2,如果想要以浏览器的身份去请求,
+                (article_spider) D:\python_example\ArticleSpider\ArticleSpider>  scrapy shell -s
+                 USER_AGENT="Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) 
+                 Chrome/63.0.3239.108 Safari/537.36"  https://www.zhihu.com/question/281967318
 ```
 

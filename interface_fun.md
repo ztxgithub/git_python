@@ -329,3 +329,11 @@
     结果:
         1531232894.0461793
 ```
+
+## 去除 html 的 tags
+
+```shell
+     from w3lib.html import remove_tags
+     
+     str_remove_tag = remove_tags(str_contain_tags)
+``` 

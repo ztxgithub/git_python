@@ -898,7 +898,7 @@
         (6) //@class
                 选取所有名为class的属性
                 
-        (7) /article/div[1]
+        (7) /article/div[1]     ******这个也是经常用到的
                 选取属于article子元素的第一个div元素
                 
         (8) /article/div[last()]
@@ -946,6 +946,19 @@
                     
     7.考虑到xpath可以写出 筛选多种情况(兼容老版本和新版本样式的不同)
         response.xpath("//span[contains(@class, 'vote-post-up')] | //span[contains(@class, 'vote-post')]")
+        
+    8.  提取出 class为 job_request, 的工作地点
+        <dd class="job_request">
+                <p>
+                    <span class="salary">8k-16k </span>
+                    <span>/杭州 /</span>
+                    <span>经验1-3年 /</span>
+                    <span>本科及以上 /</span>
+                    <span>全职</span>
+                </p>
+            </dd>
+            
+        response.xpath("//*[@class='job_request']/p/span[2]/text()"))
 ```
 
 ## codecs(文件的操作)
