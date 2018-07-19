@@ -1,4 +1,35 @@
 # python scrapy框架
+
+## 其他技能
+
+```shell
+    1.从 settings.py 中取相关的参数的值
+            注意到 各个类的__init__中的第二个参数 与 @classmethod 中 return 值
+            (1) 方法一  
+                 class MysqlTwistedPipeline(object):
+
+                    def __init__(self, dbpool):
+                        self.dbpool = dbpool
+                        
+                    @classmethod
+                    # 这里的 settings 就是对应于 settings.py 中 相关的数据库参数
+                    def from_settings(cls, settings): 
+                        database=settings["MYSQL_DBNAME"]
+                        dbpool = adbapi.ConnectionPool("MySQLdb", **dbparams)
+                        return cls(dbpool)   
+                    
+            (2) 方法二
+                       class UserAgentMiddleware(object):
+                        def __init__(self, user_agent='Scrapy'):
+                            self.user_agent = user_agent
+                    
+                        @classmethod
+                        def from_crawler(cls, crawler):
+                            return cls(crawler.settings['USER_AGENT'])
+                            
+            
+                                
+```
  
 ## pyhton scrapy 整体布局
 
@@ -156,3 +187,70 @@
 
 ## 如何随机的更换 user-agent
 
+```shell
+    1.简介
+        User_agent 是用户代理,  向服务器请求数据时用来标识自己
+        
+    2.随机的更换user_agent
+        根据 scrapy 框架 每次Request 请求 都会由 Scrapy Engine组件 通过  downloder-middleware 传给 DownLoader
+        组件, 所以可以在 downloader-middleware 中 随机更换 user-agent. 
+        A.
+            scrapy 框架本身提供了一个downLoader-middleware 下的随机更换user-agent的文件 
+                site-packages\scrapy\downloadermiddlewares\useragent.py, 
+                    class UserAgentMiddleware(object):
+                    """
+                     This middleware allows spiders to override the user_agent
+                    """
+        
+                        def __init__(self, user_agent='Scrapy'):
+                            self.user_agent = user_agent
+                    
+                        @classmethod
+                        def from_crawler(cls, crawler):
+                            o = cls(crawler.settings['USER_AGENT']) 
+                            crawler.signals.connect(o.spider_opened, signal=signals.spider_opened)
+                            return o
+                            
+                        其中 crawler.settings['USER_AGENT'] 代表是在settings.py 定义的 USER_AGENT 的值
+                        
+                         def process_request(self, request, spider):
+                            if self.user_agent:
+                                request.headers.setdefault(b'User-Agent', self.user_agent)
+                                
+                         process_request函数是将从 settings.py 得到的 USER_AGENT, 对Request中的 headers进行赋值.
+                        
+                操作
+                    在settings.py
+                        USER_AGENT = "Mozilla/5.0 (Windows NT 6.1; Win64; x64)" \
+                                     " AppleWebKit/537.36 (KHTML, like Gecko) " \
+                                     "Chrome/63.0.3239.108 Safari/537.36"
+                                     
+        B.
+            如何来写一个自己定义的 middleware
+            第一步:
+                在 settings.py 文件定义
+                    DOWNLOADER_MIDDLEWARES = {
+                       'ArticleSpider.middlewares.ArticlespiderDownloaderMiddleware': 543,
+                        'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+                    }
+                          
+                    如果要将scrapy 框架中 内置的 UserAgentMiddleware disable掉, 则令其值为 None      
+                    注意: 对应的值(543)越大, 其对应的函数越晚被执行。
+                    
+            第二步:
+                安装 fake-useragent(github有该项目) 用于方便应用 Request.headers 中的User-agent,
+                随机取各个浏览器的User-agent
+                D:\python_example\ArticleSpider (master -> origin)
+                    (article_spider) > pip install fake-useragent
+                    
+                对应的url: https://fake-useragent.herokuapp.com/browsers/0.1.4  其中0.1.4是对应的版本号
+                可以通过 D:\python_example\ArticleSpider (master -> origin)
+                        (article_spider) > pip list
+                        结果:
+                            fake-useragent   0.1.10 
+                            https://fake-useragent.herokuapp.com/browsers/0.1.10 不一定有
+ 
+        
+        
+
+```

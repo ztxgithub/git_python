@@ -146,7 +146,7 @@
         True
 ```
 
-- getattr()函数
+- getattr()函数 ----> 挺常用的
 
 ```shell
 
@@ -165,6 +165,12 @@
    3.可以传入一个default参数，如果属性不存在，就返回默认值
         >>> getattr(obj, 'z', 404) # 获取属性'z'，如果不存在，返回默认值404
         404
+        
+   4.比如现在有一个对象 ua, 它里面有 ua.firefox 方法, ua.ramdom 方法, ua.google 方法
+     现在 可能 str = "firefox" , str = "ramdom"
+        如果不对 str 进行if 判断, 而采用通用的方法:
+            method = getattr(ua, str)
+            那么 method 就可以代表 ua.firefox 方法, ua.ramdom 方法, ua.google 方法 主要看 str的值
 ```
 
 - filter() 函数
