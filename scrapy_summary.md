@@ -249,8 +249,79 @@
                         结果:
                             fake-useragent   0.1.10 
                             https://fake-useragent.herokuapp.com/browsers/0.1.10 不一定有
- 
-        
-        
+                            
+            第三步:
+                (1) 在ArticleSpider\middlewares.py  自定义 DownLoader-middleware
+                
+                    from fake_useragent import UserAgent
+                    
+                    """
+                       随机更换 User-agent
+                    """
+                    
+                    class RandomUserAgentMiddleware(object):
+                    
+                        def __init__(self, crawler):
+                            super(RandomUserAgentMiddleware, self).__init__()
+                            """
+                                定义第三方模块 UserAgent对象, 
+                                通过调用 self.ua.random 方法取随机浏览器的User-agent
+                                通过调用 self.ua.google 方法去google浏览器的随机User-agent
+                            """
+                            self.ua = UserAgent()
+                            """
+                               通过 crawler 对象可以从 setting.py文件中取一些定义的参数
+                            """
+                            self.ua_type = crawler.settings.get("RANDOM_UA_TYPE", "random")
+                    
+                        """
+                         将 crawler 对象传递到 RandomUserAgentMiddleware类中
+                        """
+                        @classmethod
+                        def from_crawler(cls, crawler):
+                            return cls(crawler)
+                    
+                        def process_request(self, request, spider):
+                            """
+                                通过 getattr()方法 得到
+                                self.ua.random,self.ua.google 这取决于 self.ua_type 的值
+                            """
+                            def get_ua():
+                                return getattr(self.ua, self.ua_type)
+                            request.headers.setdefault('User-Agent', get_ua())
+                            
+                            """
+                                设置 ip 代理, 隐藏本机的ip,不会被服务器封
+                            """
+                            request.meta["proxy"] = "http://125.118.247.4:6666"
+                            
+                (2) 在 settings.py 定义变量
+                        RANDOM_UA_TYPE = "random"
+                        
+            第四步:
+                在 settings.py 中 将 RandomUserAgentMiddleware 类加入到DOWNLOADER_MIDDLEWARES中
+                    DOWNLOADER_MIDDLEWARES = {
+                       'ArticleSpider.middlewares.RandomUserAgentMiddleware': 543,
+                        'scrapy.downloadermiddlewares.useragent.UserAgentMiddleware': None,
+                    }
+```
 
+## 如何设置 ip 代理
+
+```shell
+    1.ip 的变化策略, 如果爬取访问频率过快, 本机的ip将会被禁, 这时候可以采取 重启路由器方法(不一定有效)
+    2.ip 代理
+        (1) 首先浏览器向 代理服务器发起请求(要获取伯乐在线的数据), 然后 代理服务器 再向伯乐在线请求数据, 返回
+            数据response先到 代理服务器, 代理服务器再到 浏览器
+        (2) 通过 西刺免费代理IP 可以拿到 高匿IP代理 IP:port
+        (3) scrapy框架设置 IP代理
+                """
+                    设置 ip 代理, 隐藏本机的ip,不会被服务器封
+                """
+                request.meta["proxy"] = "http://125.118.247.4:6666"
+                
+    3.如果构建 IP 代理池
+        第一步:
+                先向 西刺免费代理IP 网站进行爬取 高匿IP 的信息, 存入到数据库中
+        
 ```
