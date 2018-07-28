@@ -30,6 +30,41 @@
             
                                 
 ```
+
+## selector 类
+
+```shell
+    1.scrapy 中的 spider 类也是继承于 selector 类，其中 selector 类具有 xpath, css 方法
+        # 对象的初始化，传入参数 text 为 html 格式的内容   
+        selector = Selector(text=re.text)
+        
+        """
+        在 id 为 ip_list 的节点下的 tr 节点
+        <table id="ip_list">
+          <tr class="odd">
+            <td class="country"><img src="http://fs.xicidaili.com/images/flag/cn.png" alt="Cn"></td>
+            <td>122.237.104.62</td>
+            <td>80</td>
+            <td>浙江绍兴</td>
+            <td class="country">高匿</td>
+            <td>HTTPS</td>
+              <td>2小时</td>
+            <td>7分钟前</td>
+          </tr>
+        """
+        all_trs = selector.css("#ip_list tr")
+        """
+            tr 也是一个 selector 选择器
+        """
+        for tr in all_trs[1:]:
+            speed_str = tr.css(".bar::attr(title)").extract()[0]
+            if speed_str:
+                speed = float(speed_str.split("秒")[0])
+            all_texts = tr.css("td::text").extract()
+            ip = all_texts[0]
+            port = all_texts[1]
+            protocol = all_texts[5]
+```
  
 ## pyhton scrapy 整体布局
 
@@ -322,6 +357,71 @@
                 
     3.如果构建 IP 代理池
         第一步:
-                先向 西刺免费代理IP 网站进行爬取 高匿IP 的信息, 存入到数据库中
+                先向 西刺免费代理IP 网站进行爬取 高匿IP 的信息, 存入到数据库中, 在 
+                tools/crawl_cixi_ip.py 中定义随机获取 ip 代理的类 class GetIP(object)
+        第二步:
+                在 /ArticleSpder/middleware.py 中 定义 class RandomProxyMiddleware(object)
+                进行 Scrapy 中 ip 代理的设置
+                
+    4. github 上 scrapy_proxies 项目有关于 ip 代理 相关处理
+    5. github scrapy-crawlera 
+            让我们 动态ip代理更加简单，不过要收费
+         
+    6. tor 
+            洋葱浏览器，通过洋葱网络可以将本机 ip 进行匿名，
+        
+```
+
+## 验证码识别
+
+```shell
+    1.编码实现(tesseract-ocr)
+        tesseract-ocr 这是 google 开源的一个工具，最早是通过图片用来识别文字的，tesseract-ocr 识别率很低，
+        不建议自己实现验证码的编码，开发效率低
+    2.在线打码(推荐使用)
+        识别率达到 90% 以上，识别速度较快，依靠的识别技术，主要是通过平台给我们的 api ，自己去调用
+        在线打码平台：云打码，其中该平台要有 2 个账号,一个是开发者账号是用来测试的，另外一个则是用户账号
+                    用来付钱的 
+    3.人工打码
+        保证任何复杂度验证码的识别，是人在识别你图片的验证码， 超速打码 项目
+```
+
+## settings.py 配置
+
+```shell
+    1.cookies 的禁用
+        在 settings.py 文件中有
+            # Disable cookies (enabled by default)
+             COOKIES_ENABLED = False
+            
+            有的网站通过 cookies 来判断是否为爬虫，但是对于知乎等一些网站，如果将 cookies 禁用将登陆不成功。
+            
+    2.设置下载速度
+        在 settings.py 文件中有
+            DOWNLOAD_DELAY = 3 # 代表向网站请求下载的延迟，3秒钟请求下载一次
+            
+            AUTOTHROTTLE_ENABLED = True  # 开启自动限流功能
+            AUTOTHROTTLE_START_DELAY = 5 # The initial download delay
+            # The maximum download delay to be set in case of high latencies
+            AUTOTHROTTLE_MAX_DELAY = 60
+            AUTOTHROTTLE_DEBUG = False # 将延迟信息打印出来
+            
+    3.在不同的 Spider 中配置不同的 setting 值
+           例如在同一个项目中需要不同的配置，知乎是需要 cookies 的参数的，而伯乐在线时不需要 cookies 的，
+           但是一个项目只有 settings.py 一个文件。
+           
+           site-packages\scrapy\spiders\__init__.py 文件
+                class Spider(object_ref):
+                    name = None
+                    custom_settings = None # 这个就是跟 settings.py 有关
+                    
+           所以在每一个不同的 spider 可以定义不同的 custom_settings，例如知乎
+           zhihu.py
+                class ZhihuSpider(scrapy.Spider):
+                        # 通过对 custom_settings 的设置，可以覆盖掉 settings.py 默认的配置
+                        custom_settings = {
+                            "COOKIES_ENABLED":True
+                        }
+        
         
 ```

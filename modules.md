@@ -742,6 +742,18 @@
                 Safari/537.36
             这样有些网站的服务器会检测user-agent字段合不合法，如果不合法,则会返回 状态码为500的错误
             
+        (2) 使用 requests 模块请求数据时, 不直接通过本机 ip 到服务器，而是通过 ip 代理( proxy )
+                 http_url = "http://www.baidu.com" # http_url 代表要请求的网站
+                 ip = 120.120.120.120
+                 port = 8080
+                 proxy_url = "https://{0}:{1}".format(ip, port) # proxy_url 代表通过 ip 代理 进行请求
+                 proxy_dict = {
+                "http": proxy_url
+                }
+            
+               response = requests.get(http_url, proxies=proxy_dict)
+               
+               通过 response.status_code 查看返回状态
 ```
 
 ### XML

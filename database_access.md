@@ -90,7 +90,9 @@
       True
       >>> conn.close()
       
-      执行INSERT等操作后要调用commit()提交事务；
+      注意:
+            执行 INSERT,delete 等操作后要调用 commit() 提交事务；
+            而只是单纯的查找 select 则不需要 commit() 
       
       MySQL的SQL占位符是%s
       

@@ -144,6 +144,24 @@
                 
         (2) 提取出子孙代元素
                 >>> response.css(".NumberBoard-item  .NumberBoard-itemName::text")
+                
+    6. 当某个节点 tr 下，有多个 td 节点，想要去各个 td 节点下的内容
+        提取出 td 节点下各个值
+          <tr class="odd">
+            <td class="country"><img src="http://fs.xicidaili.com/images/flag/cn.png" alt="Cn"></td>
+            <td>122.237.104.62</td>
+            <td>80</td>
+            <td>浙江绍兴</td>
+            <td class="country">高匿</td>
+            <td>HTTPS</td>
+            <td>2小时</td>
+            <td>7分钟前</td>
+          </tr>
+          
+          其中第一个 td 节点没有 text 则 all_texts[0] 为 122.237.104.62
+          >>> all_texts = response.css(".odd  td::text").extract()
+          ip = all_texts[0]   # 122.237.104.62
+          port = all_texts[1] # 80
 ```
 
 ## scrapy中spiders目录下parse
