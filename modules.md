@@ -999,3 +999,12 @@
     # 关闭句柄
     im.close()
 ```
+
+## time 模块
+
+```shell
+    (1) sleep 
+            import time
+            time.sleep(5) # 睡眠 5 秒
+            
+```
