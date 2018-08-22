@@ -10,7 +10,7 @@
       # 数据库文件是test.db
       # 如果文件不存在，会自动在当前目录创建:
       >>> conn = sqlite3.connect('test.db')
-      # 创建一个Cursor:
+      # 创建一个 Cursor:
       >>> cursor = conn.cursor()
       # 执行一条SQL语句，创建user表:
       >>> cursor.execute('create table user (id varchar(20) primary key, name varchar(20))')
