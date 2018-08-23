@@ -89,7 +89,7 @@
                 if match_obj:
                     print(match_obj.group(1)) 
                 结果:
-                    bb
+                    booooob
                 
         
     7.编译
