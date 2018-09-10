@@ -338,8 +338,20 @@
                 # 删掉一个目录:
                 >>> os.rmdir('/Users/michael/testdir')
                 
-    4.os.path.join()函数
-        把两个路径合成一个时，不要直接拼字符串,可以正确处理不同操作系统的路径分隔符
+    4.
+        (1) os.path.join()函数
+                把两个路径合成一个时，不要直接拼字符串,可以正确处理不同操作系统的路径分隔符
+                >>> os.path.join('d:\\library','book.txt')
+                    'd:\\library\\book.txt'
+        
+        (2) 获取当前目录
+                os.path.abspath(os.path.dirname(__file__))
+        
+        (3) 获取上级目录
+                os.path.abspath(os.path.join(os.getcwd(), ".."))
+                
+        (4) 获取上上级目录
+                os.path.abspath(os.path.join(os.getcwd(), "../.."))
         
     5.os.path.split()函数 拆分路径
         要拆分路径时，也不要直接去拆字符串，而要通过os.path.split()函数，
