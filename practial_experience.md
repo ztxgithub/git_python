@@ -877,7 +877,7 @@
                         h.cancel()
                         
         (2) 通过查看Future类的源码，可以看到，Future是一个实现了__iter__对象的生成器：
-            当我们的协程yield from asyncio.sleep时，事件循环其实是与Future对象建立了练习。
+            当我们的协程yield from asyncio.sleep时，事件循环其实是与Future对象建立了联系。
             每次事件循环调用send(None)时，其实都会传递到Future对象的__iter__函数调用；
             而当Future尚未执行完毕的时候，就会yield self，也就意味着暂时挂起，等待下一次send(None)的唤醒。
                 class Future:
