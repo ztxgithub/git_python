@@ -112,6 +112,13 @@
 
 ## 安装 navicat for mysql
 
+```shell
+    1.navicat 对 sql 文件的导入
+        (1) 先打开数据库的连接
+        (2) 再新建一个数据库，右键运行 SQL 文件
+        (3) 再按 F5 刷新
+```
+
 ## windows python 安装
 
 ```shell
@@ -152,6 +159,22 @@
         在该网址中找到对应的python版本的源进行下载安装
         pip install 下载包
          
+```
+
+## 安装第三方模块失败
+
+```shell
+    1.安装 mysql-python (pip install mysql-python) 时报错
+         error: Microsoft Visual C++ 9.0 is required. Get it from http://aka.ms/vcpython27
+         
+         解决方案:下载安装包进行本地安装
+            第一步: 在 http://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python下载对应的包版本，
+                    如果是win7 64位2.7版本的python，就下载
+                            MySQL_python-1.2.5-cp27-none-win_amd64.whl
+
+            第二步: 在命令行执行pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
+                   当然需要在cmd下跳转到下载MySQL_python-1.2.5-cp27-none-win_amd64.whl的目录下
+
 ```
 
 ## pip 内容介绍

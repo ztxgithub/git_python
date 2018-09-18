@@ -63,3 +63,102 @@
     6.新建 log 目录存放日志， 在 PyCharm 中 该项目右键新建目录 log 
     7. 新建 media 用于存放用户上传文件, 在 PyCharm 中 该项目右键新建目录 meida 
 ```
+
+## Django 配置数据库
+
+```shell
+    1. 在 project_dir/settings.py 中修改 DATABASES 为
+            DATABASES = {
+                            'default': {
+                                'ENGINE': 'django.db.backends.mysql',
+                                'NAME': "testdjango",    # 数据库名
+                                'USER':"root",           # 用户名
+                                'PASSWORD':"123456",     # 密码
+                                'HOST':"127.0.0.1"       # 连接主机 ip
+                            }
+                        }
+            
+    2. 根据数据库来直接生成好 django 默认的数据表，在 PyCharm Tools->Run manager.py Task
+            (1) 问题一:
+                    django.core.exceptions.ImproperlyConfigured: 
+                    Error loading MySQLdb module: No module named MySQLdb
+                原因:
+                    没有安装 MySQLdb 的驱动
+                    
+                解决方案:
+                    在虚拟环境中安装驱动
+                    (django_test_27) λ pip install mysql-python
+                        1.安装 mysql-python (pip install mysql-python) 时报错
+                         error: Microsoft Visual C++ 9.0 is required. Get it from http://aka.ms/vcpython27
+                         
+                         解决方案:下载安装包进行本地安装
+                            第一步: 在 http://www.lfd.uci.edu/~gohlke/pythonlibs/#mysql-python下载对应的包版本，
+                                    如果是win7 64位2.7版本的python，就下载
+                                            MySQL_python-1.2.5-cp27-none-win_amd64.whl
+                
+                            第二步: 在命令行执行pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
+                                   当然需要在cmd下跳转到下载MySQL_python-1.2.5-cp27-none-win_amd64.whl的目录下
+                                   
+            (2) 问题二：
+                    Error fetching command 'collectstatic': You're using the staticfiles app 
+                    without having set the STATIC_ROOT setting to a filesystem path.
+                    Command 'collectstatic' skipped
+                    
+                解决方案:
+                    在settings.py中增加
+                          STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+                          
+    3. 在 PyCharm 底部的运行框中输入 
+            manage.py@untitled1 > migrate
+            
+       则在对应的数据库中生成了 Django 所需要的表
+            
+```
+
+## 为 html 创建 url 的映射
+
+```shell
+    1.有一个 form.html 页面，要为 form.html 创建一个 url 的映射
+    
+            (1) 在 apps/message/views.py
+                    """
+                        这里 request 是 Django 的 http request 对象
+                    """
+                    def getform(request):
+                        """
+                        直接方法 页面
+                            参数：
+                                request： http request 对象
+                                template_name：html 页面名称
+                        """
+                        return render(request, 'message_form.html')
+                        
+            (2) 在 urls.py 中 新增
+                    urlpatterns = [
+                            url(r'^form/$', getform)
+                        ]
+                        
+            (3) 在 settings.py 中修改 'DIRS' 的内容(为了找到对应的 message_form.html 文件)
+                    TEMPLATES = [
+                        {
+                            'BACKEND': 'django.template.backends.django.DjangoTemplates',
+                            'DIRS': [os.path.join(BASE_DIR, 'templates')]
+                            ,
+                            'APP_DIRS': True,
+                            'OPTIONS': {
+                                'context_processors': [
+                                    'django.template.context_processors.debug',
+                                    'django.template.context_processors.request',
+                                    'django.contrib.auth.context_processors.auth',
+                                    'django.contrib.messages.context_processors.messages',
+                                ],
+                            },
+                        },
+                    ]
+                    
+            (4)  在 settings.py 中修改中新增 STATICFILES_DIRS
+                        STATICFILES_DIRS = [
+                            os.path.join(BASE_DIR, 'static')
+                            ]
+                    
+```
