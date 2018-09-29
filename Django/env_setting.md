@@ -24,6 +24,19 @@
 
 ```
 
+## Django 项目的运行
+
+```shell
+    1. workon 虚拟环境
+    2. 在虚拟环境中安装好对应的软件包
+        > pip install -r  requirements.txt
+            
+        requirements.txt 的内容
+            Django==1.9.8
+            
+    3.(django_start) λ python manage.py runserver
+```
+
 ## 结构层次
 
 ```shell
@@ -64,7 +77,7 @@
     7. 新建 media 用于存放用户上传文件, 在 PyCharm 中 该项目右键新建目录 meida 
 ```
 
-## Django 配置数据库
+## Django 配置数据库（为 model 对象做准备）
 
 ```shell
     1. 在 project_dir/settings.py 中修改 DATABASES 为
