@@ -213,5 +213,6 @@
                     url 但页面不变，则需要 改 url(r'^form/$', getform, name="form_new") 中 
                     r'^form/$ 就行了
                     
+                    
         
 ```
