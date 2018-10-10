@@ -213,6 +213,17 @@
                     url 但页面不变，则需要 改 url(r'^form/$', getform, name="form_new") 中 
                     r'^form/$ 就行了
                     
+                    A. 在 urlpatterns 中 url 匹配的先后顺序
+                            urlpatterns = [
+                        url(r'^admin/', admin.site.urls),
+                        url(r'^form', getform, name="form_new"),
+                        url(r'^formtest', admin.site.urls),
+                    ]
+                    
+                    如果页面访问 http://127.0.0.1:8000/formtest  则会跳转到 getform 页面，而不是 admin.site.urls , 
+                    因为正则匹配到了  url(r'^form', getform, name="form_new") ， 正确写法是
+                                   url(r'^form/$', getform, name="form_new") 
+                    
                     
         
 ```
