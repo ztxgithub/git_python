@@ -48,25 +48,52 @@
 ## models.py 数据类型
 
 ```shell
-    1.
+    1. model.py 相关的知识点
+    
         models.ForeignKey     : 对应于数据库的外键
         models.DateTimeField  : 对应于数据库的日期
         models.IntegerField   : 对应于数据库的整型  
         models.IPAddressField : 对应 IP 地址类型
         models.FileField      : 用于上传文件类型
         models.ImageField     : 用于图片类型
+             # 头像图片, 图片可以上传到某个目录，也可以有默认图片
+             image = models.ImageField(upload_to="image/%T/%m", 
+                                       default=u"image/default.png", 
+                                       max_length=100)
         models.CharField:
                 参数:
                     (1) max_length : 最大字符长度
                     (2) null = True, blank=True : 该字段可以为空
                     (3) default=""  设定默认值为空
                     
-        1.自己定义主键：
+        (1).自己定义主键：
             object_id(字段名) = models.CharField(primary_key=True, max_length=50,
                                                 default="", verbose_name="主键")
                                                 
-        2. 指定表名
+        (2). 指定表名
                 db_table = "表名"
+                
+        (3).数据库中定义可见的选择(使用 choices)，例如性别
+            gender = models.CharField(choices=(("male", u"男"), ("female", u"女")), 
+                                      default="male")
+                                      
+        (4) 在 model.py 自定义类中，需要重载 Unicode方法, 否则在 print UserProfile 实例的时候
+            就不能打印我们自定义的字符串，打印实例会打印username，username为继承自abstractuser
+                class UserProfile(AbstractUser):
+                     # 昵称
+                        nick_name = models.CharField(max_length=50, 
+                                                     verbose_name=u"昵称", 
+                                                     default="")
+                        def __unicode__(self):
+                              return self.username     
+                              
+        (5)  在 model.py 自定义类中当前记录的生成时间 
+                time = models.DateTimeField(default=datetime.now, verbose_name=u"添加时间")    
+                其中now得去掉(), datetime.now() 是根据编译时间， datetime.now是根据实例化时间                   
+                     
+                                      
+        
+            
                 
     2. 在 views.py 中引入数据库类
             from .models import UserMessage

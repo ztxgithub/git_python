@@ -21,6 +21,10 @@
         1.在 Django 服务启动时，默认访问IP只能是127.0.0.1:8000,如果需要用外网ip进行访问则，
           则在 Run-> Edit Configuration 中的 Host 写为 0.0.0.0:8000， 则该 Django是部署在
           192.168.0.2 中，则可以通过 http://192.168.0.2:8000 进行访问
+          
+          
+    5. 在虚拟环境中安装 mysql 驱动， 在 settings.py 中修改 DATABASES 参数(包括用户名，密码，数据库名),生成默认数据库表
+       (详细见 Django 配置数据库（为 model 对象做准备）)
 
 ```
 
@@ -33,6 +37,10 @@
             
         requirements.txt 的内容
             Django==1.9.8
+            
+        安装 mysql 驱动
+        >  pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl 
+        (详细见 Django 配置数据库（为 model 对象做准备）)
             
     3.(django_start) λ python manage.py runserver
 ```
@@ -109,7 +117,7 @@
                                     如果是win7 64位2.7版本的python，就下载
                                             MySQL_python-1.2.5-cp27-none-win_amd64.whl
                 
-                            第二步: 在命令行执行pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
+                            第二步: 在命令行执行 pip install MySQL_python-1.2.5-cp27-none-win_amd64.whl
                                    当然需要在cmd下跳转到下载MySQL_python-1.2.5-cp27-none-win_amd64.whl的目录下
                                    
             (2) 问题二：
@@ -122,7 +130,8 @@
                           STATIC_ROOT = os.path.join(BASE_DIR, 'static')
                           
     3. 在 PyCharm 底部的运行框中输入 
-            manage.py@untitled1 > migrate
+            A. manage.py@custom_mxonline > makemigrations
+            B. manage.py@untitled1 > migrate
             
        则在对应的数据库中生成了 Django 所需要的表
             
