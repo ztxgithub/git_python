@@ -11,7 +11,8 @@
     2. 如果在 *.py 中有中文出现，则在头部一定要写上 
             # coding:utf-8
             
-    3.在 *.html 中所有表单提交的时候都要加 {% csrf_token %}
+    3. 在 *.html 中所有表单提交的时候都要加 {% csrf_token %}
+    4. 在数据库的一对多(一个课程对应多个章节)，可以用 Django 的外键
 ```
 
 ## ORM 操作
@@ -43,6 +44,21 @@
        数据库表进行变更
             manage.py@untitled1 > makemigrations message(这个是 apps 名字)
             manage.py@DjangoGetStarted > migrate message
+            
+    4. 当 models.py 中代码有修改需要同步到数据库
+            manage.py@untitled1 > makemigrations courses(这个是 apps 名字)
+            manage.py@DjangoGetStarted > migrate courses
+            
+            问题一: 在进行 makemigrations message 时出现 ValueError: too many values to unpack
+            原因是： apps/courses/migrations/0001_initial.py 中 
+                    ('course', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='apps.courses.Course', 
+                                                 verbose_name='\u8bfe\u7a0b')),
+                                                 
+                    to='apps.courses.Course'
+                    
+            修改:
+                    to='apps.courses.Course' 改为 to='courses.Course'
+            
 ```
 
 ## models.py 数据类型
@@ -55,6 +71,10 @@
         models.IntegerField   : 对应于数据库的整型  
         models.IPAddressField : 对应 IP 地址类型
         models.FileField      : 用于上传文件类型
+            download = models.FileField(
+                                        upload_to="course/resource/%Y/%m",
+                                        verbose_name=u"资源文件",
+                                        max_length=100)
         models.ImageField     : 用于图片类型
              # 头像图片, 图片可以上传到某个目录，也可以有默认图片
              image = models.ImageField(upload_to="image/%T/%m", 
@@ -65,6 +85,18 @@
                     (1) max_length : 最大字符长度
                     (2) null = True, blank=True : 该字段可以为空
                     (3) default=""  设定默认值为空
+                    
+        models.TextField: 允许不输入最大长度
+              detail = models.TextField(verbose_name=u"课程详情")
+              
+        models.ForeignKey：外键
+            class Lesson(models.Model):
+                    course = models.ForeignKey(Course, verbose_name=u"课程")
+                    因为一个课程对应很多章节。所以在章节表中将课程设置为外键，
+                    作为一个字段来让我们可以知道这个章节对应那个课程
+                    
+        models.BooleanField:
+                has_read = models.BooleanField(default=False, verbose_name=u"是否已读")
                     
         (1).自己定义主键：
             object_id(字段名) = models.CharField(primary_key=True, max_length=50,
@@ -89,7 +121,9 @@
                               
         (5)  在 model.py 自定义类中当前记录的生成时间 
                 time = models.DateTimeField(default=datetime.now, verbose_name=u"添加时间")    
-                其中now得去掉(), datetime.now() 是根据编译时间， datetime.now是根据实例化时间                   
+                其中now得去掉(), datetime.now() 是根据编译时间， datetime.now是根据实例化时间   
+                
+                                
                      
                                       
         
