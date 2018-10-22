@@ -176,7 +176,91 @@
                                  pass
                              # 将UserProfile注册进我们的admin中, 并为它选择管理器
                              admin.site.register(UserProfile,UserProfileAdmin)
+    
+    3.Django Xadmin
+        (1) xadmin 是 Django 更强大的后台管理系统
+        (2) 安装 xadmin
+                I. 方法一
+                        A.在虚拟环境中按 xadmin      
+                            (django_start) λ pip install xadmin      
+                            
+                        B. 在 settings.py 配置 app (Django 的一切开发是基于 app)
+                                INSTALLED_APPS = [
+                                                    'xadmin',
+                                                    'crispy_forms'
+                                                 ]
+                                                 
+                        C. 修改 urls.py 改为 xadmin
+                                import xadmin
+                                urlpatterns = [
+                                                url(r'^xadmin/', xadmin.site.urls),
+                                              ]
+                                              
+                        D. 原先 users/admin.py 的注册方式注释掉
+                        E. 需要将 xadmin 表进行同步(不然会出现 ProgrammingError: 
+                           (1146, "Table 'mxonline_test.xadmin_usersettings' doesn't exist"))
+                                 在 PyCharm 中 Tools->Run manager.py Task
+                                        manage.py@custom_mxonline> makemigrations
+                                        manage.py@custom_mxonline> migrate
+                                        
+                II. 方法二
                         
-          
-          
+                        A. 通过下载 github xadmin 的源码，解压，将 xadmin 目录添加到项目中
+                        
+        (3) xadmin 使用
+                A. 如何注册 model
+                       (I). 在 apps/users/ 目录下新建 adminx.py (xadmin 会自动查找 apps 下 adminx.py,
+                                                               根据文件的内容来注册我们的 model)
+                                                               
+                       (2) 创建admin的管理类(简单版)
+                                import xadmin
+                                from .models import EmailVerifyRecord
+                                # 创建admin的管理类,这里不再是继承admin，而是继承object
+                                class EmailVerifyRecordAdmin(object):
+                                    pass
+                                
+                                # 将头部与脚部信息进行注册:
+                                xadmin.site.register(EmailVerifyRecord, EmailVerifyRecordAdmin)
+                                
+                       (3) 在浏览器 http://127.0.0.1:8000/xadmin/ 中 model 注册的名字(邮箱验证码)，
+                            其实就是对应于 class EmailVerifyRecord 中的 class Meta 的 verbose_name 的值。
+                            其中 class Meta 的 verbose_name_plural 其实是 model 的复数形式，如果不对
+                            verbose_name_plural 进行赋值的，后台管理程序会将 verbose_name_plural 的值自动设置为
+                            在 verbose_name 后面加上 "s" , 例如 "邮箱验证码s", 所以在  
+                            http://127.0.0.1:8000/xadmin/ 中 model 注册的名字为"邮箱验证码s"
+                            
+                            在浏览器邮箱验证码页面中， 邮箱验证码为 " admin(xx@163.com) " 是因为 
+                            class EmailVerifyRecord 中  def __unicode__(self) 
+                            
+                            Django 的 xadmin 后台管理系统实际上就是对每一个表做的一个增删改查的管理器，它不像有的智能
+                            管理系统(是以一个功能一个功能来设计的，比如说 php 后台管理系统可以在我们的页面中设置首页
+                            每个块的显示应该是什么)， 而 Django 则不同，它只是对表进行增删改查，同时也可以在增删改查
+                            增加后台逻辑，这样从某种程度来讲是不依赖于具体业务的
+                            
+                       (4) 问题一： "Table mxonline.xadmin_log doesn't exist"
+                           原因是： 之前使用 pip install xadmin 进行安装，现在改用源码 xadmin, 其数据库表不一致
+                           解决方案:
+                                A. manage.py@custom_mxonline > makemigrations
+                                B. manage.py@untitled1 > migrate
+                                
+                           问题二:在 Run Manage.py Task 中 "ImportError: No module named xadmin"
+                           原因是： 在 settings.py 中没有将 extra_apps 目录加入到系统搜索路径中
+                           解决方案:
+                                  在 settings.py 中 
+                                        sys.path.insert(0,os.path.join(BASE_DIR, 'extra_apps'))
+                                        
+                       (5) 需要在 users/adminx.py class EmailVerifyRecordAdmin
+                           中进行改写
+                                class EmailVerifyRecordAdmin(object):
+                                    # 配置后台我们需要显示的列，如何在列表页中自定义显示某些列，
+                                    list_display = ['code', 'email','send_type', 'send_time']
+                                    
+                                    # 配置搜索字段,不做时间搜索，页面进行查询
+                                    search_fields =  ['code', 'email','send_type']
+                                   
+                                    # 配置筛选字段(过滤器)
+                                    list_filter =  ['code', 'email','send_type', 'send_time']
+                                   
+                
+                        
 ```

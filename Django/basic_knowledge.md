@@ -57,7 +57,7 @@
                     to='apps.courses.Course'
                     
             修改:
-                    to='apps.courses.Course' 改为 to='courses.Course'
+                    to='apps.courses.Course' 改为 to='.courses.Course'
             
 ```
 
