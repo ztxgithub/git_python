@@ -209,7 +209,7 @@
                         
         (3) xadmin 使用
                 A. 如何注册 model
-                       (I). 在 apps/users/ 目录下新建 adminx.py (xadmin 会自动查找 apps 下 adminx.py,
+                       (1). 在 apps/users/ 目录下新建 adminx.py (xadmin 会自动查找 apps 下 adminx.py,
                                                                根据文件的内容来注册我们的 model)
                                                                
                        (2) 创建admin的管理类(简单版)
@@ -251,15 +251,73 @@
                                         
                        (5) 需要在 users/adminx.py class EmailVerifyRecordAdmin
                            中进行改写
-                                class EmailVerifyRecordAdmin(object):
-                                    # 配置后台我们需要显示的列，如何在列表页中自定义显示某些列，
-                                    list_display = ['code', 'email','send_type', 'send_time']
+                                (A) class EmailVerifyRecordAdmin(object):
+                                        # 配置后台我们需要显示的列，如何在列表页中自定义显示某些列，
+                                        list_display = ['code', 'email','send_type', 'send_time']
+                                        
+                                        # 配置搜索字段,不做时间搜索，页面进行查询
+                                        search_fields =  ['code', 'email','send_type']
+                                       
+                                        # 配置筛选字段(过滤器)
+                                        list_filter =  ['code', 'email','send_type', 'send_time']
                                     
-                                    # 配置搜索字段,不做时间搜索，页面进行查询
-                                    search_fields =  ['code', 'email','send_type']
-                                   
-                                    # 配置筛选字段(过滤器)
-                                    list_filter =  ['code', 'email','send_type', 'send_time']
+                                (B) 如果要在配置筛选字段中过滤外键相关的字段 course(外键名) + "__" + 该外键类对应的字段名
+                                        class LessonAdmin(object):
+                                                # __name代表使用外键中name字段
+                                                list_filter = ['course__name', 'name', 'add_time']
+                                                
+                                (C) 在 搜索字段 字段(search_fields),最好不要包含时间，不然会出错
+                                
+                       (6) 设置全局配置
+                                (A) 
+                                       # x admin 全局配置参数信息设置
+                                        class GlobalSettings(object):
+                                            # 在 http://127.0.0.1:8000/xadmin/ 页面中，左上角 "Django Xadmin"
+                                            # 改为其他字符串
+                                            site_title = "天涯明月笙: 慕课后台管理站"
+                                            
+                                            # 在 http://127.0.0.1:8000/xadmin/ 页面的底部 "© 我的公司" 改为其他的
+                                            # 字符串
+                                            site_footer = "mtianyan's mooc"
+                                            
+                                            # 在 http://127.0.0.1:8000/xadmin/ 页面的左边的导航栏设置为收缩模式
+                                            # 收起菜单
+                                            menu_style = "accordion"
+                                            
+                                        # 将头部与脚部信息进行注册:
+                                         xadmin.site.register(views.CommAdminView, GlobalSettings)
+                                
+                                    
+                                (B) 
+                                    
+                                (C) xadmin 的主题修改
+                                        (1) 暂时在 users/adminx.py 中编辑
+                                                from xadmin import views
+                                                # 创建X admin的全局管理器并与view绑定。
+                                                class BaseSetting(object):
+                                                    # 开启主题功能
+                                                    enable_themes = True
+                                                    use_bootswatch = True
+                                                    
+                                                # 将全局配置管理与view绑定注册
+                                                xadmin.site.register(views.BaseAdminView, BaseSetting)
+                                                
+                                        (2) 这时候在 http://127.0.0.1:8000/xadmin/ 页面的头部会出现 "主题"
+                                
+                                (D) 在 http://127.0.0.1:8000/xadmin/ 页面的左边栏 app 的名称(例如 COURSES 改为中文)
+                                    (I)
+                                        在 users/apps.py 中 加一个 verbose_name
+                                                class UsersConfig(AppConfig):
+                                                       name = 'users'
+                                                        verbose_name = u"用户信息"
+                                                        
+                                    (II) 在 users/__init__.py 中加入
+                                                # encoding: utf-8
+                                                # 添加默认的app_config使app中文名生效
+                                                default_app_config = "users.apps.UsersConfig"
+                                
+                                (E) 
+                                            
                                    
                 
                         
