@@ -315,10 +315,87 @@
                                                 # encoding: utf-8
                                                 # 添加默认的app_config使app中文名生效
                                                 default_app_config = "users.apps.UsersConfig"
-                                
-                                (E) 
-                                            
-                                   
-                
+                                                     
+```
+
+## 用户的登录和注册,找回密码
+
+```shell
+
+    1. 基础知识
+            (1) 在通过网页 post 的 username 和　password 值，可以通过 Django 自带的 authenticate() 方法进行验证，其内部的实现是
+                向对应的数据库查询是否有对应的用户名和密码
+                    from django.contrib.auth import authenticate
+                    # 成功返回user对象,失败返回null
+                    user = authenticate(username = user_name, password = pass_word)
+            (2) 拿到 username 和 password 后，调用 Django 自带的 login(request, user) 方法完成登录，其内部的实现是
+                将传入参数中 request 对象的部分值进行赋值操作，之后通过 render(request, "index.html") 将这些信息待会给
+                浏览器
+                    from django.contrib.auth import login
+                        login(request, user)
+                        return render(request, "index.html") # 一般登录成功之后会跳转到首页或则个人中心页面
                         
+            (3) 在用户登录业务中，
+    2.用户登录功能
+            (1) 首页是 index.html , 将 index.html 放到项目的 templates 目录下
+            (2) 在项目目录中右键新建 static ,用来存放 css, js, image 等静态文件
+            (3) 在 project_dir(例如 custom_mxonline)/urls.py 中处理静态文件, index 页面的放回
+                         ## 处理的文件是静态文件
+                        from django.views.generic import TemplateView  
+                            urlpatterns = [
+                                             url('^$', TemplateView.as_view(template_name="index.html"), "index"),
+                                          ]
+                                          
+                        在 settings.py 中指明 static 文件存放的路径
+                            STATICFILES_DIRS = (
+                                                    os.path.join(BASE_DIR, "static"),
+                                                )
+                        
+                        在 index.html 中修改跟 static 相关的路径
+                         将 <link rel="stylesheet" type="text/css" href="../css/reset.css">
+                         修改为：
+                            <link rel="stylesheet" type="text/css" href="{% static 'css/reset.css' %}">
+                            
+            (4) 
+                a. 拷贝 login.html ，并且在资源路径中将类似 ../css/reset.css 替换为 {% static 'css/reset.css' %},
+                b. 同时在 project_dir(例如 custom_mxonline)/urls.py 中加入 url
+                   url('^login/$', TemplateView.as_view(template_name="login.html"), name = "login"),
+                c. 在 index.html 中的"登录" 对应的 href 改为 "/login/"
+                        <a style="color:white" class="fr loginbtn" href="/login/">登录</a>
+                    
+            (5) 编写后台逻辑，在 apps/users/views.py
+                        # 当我们配置url被这个view处理时，自动传入request对象.
+                        def user_login(request):
+                            # 前端向后端发送的请求方式: get 或post
+                            # 登录提交表单为post
+                            if request.method == "POST":
+                                .......
+                            # 获取登录页面为get
+                            elif request.method == "GET": 
+                                # render就是渲染html返回用户
+                                # render三变量: 第一个参数：request 
+                                               第二个参数：模板名称（html页面）
+                                               第三个参数：一个字典传给前端的值
+                                return render(request, "login.html", {})  
+                                
+                在 views.py 的 user_login 函数写好后，与之对应的是 urls.py
+                        from users.views import user_login
+                        urlpatterns = [
+                                        url('^login/$', user_login, name = "login"),
+                                      ]
+                                      
+                在 login.html 中进行账号登录时 <form action="/login/" method="post" autocomplete="off">..</from>
+                其中 action 对应的是 urls.py 中 url 的地址。
+                
+                如果在账号登录时进行 post 提交表单(form) 遇到“禁止访问403， csrf 验证失败，相应中断”，这是 Django 的安全机制，
+                Django 为了防止跨域的提交，刚开始向前端传递一个随机符号，在 post 的时候只有把这个随机符号带回去。
+                解决方法：加入 csrf_token,会自动生成 csrf_token 
+                    <form ....>
+                    {% csrf_token %}
+                    </form>
+                
+                这个时候 F12 在 <form> 表单中出现
+                 <input type="hidden" name="csrfmiddlewaretoken" value="ZSiXE7ay2FbP9ibHr6oePOlLi85zyiR7"> 
+                
+                    
 ```

@@ -13,6 +13,9 @@
             
     3. 在 *.html 中所有表单提交的时候都要加 {% csrf_token %}
     4. 在数据库的一对多(一个课程对应多个章节)，可以用 Django 的外键
+    5. MTV 模式：M(model), T(template), V(view), template 即 HTML 模板，页面展示的 HTML 代码
+       当用户输入一个 URL 时，该 URL 找到相应的视图(views.py)，执行视图的某部分，如需查询数据库，则会使用数据库模型获取数据，
+       在视图程序中通过指定的HTML文件，以页面的形式显示给用户
 ```
 
 ## ORM 操作

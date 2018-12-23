@@ -48,10 +48,33 @@
 ## 结构层次
 
 ```shell
-    1.templates 存放 html 文件
-    2.project_dir/settings.py : 放置了 Django 的全局配置信息
-      project_dir/urls.py : 放置了 Django 的主要的 url 入口
-      project_dir/wsgi.py : 放置了 Django 启动的 wsgi 文件
+    1.templates 存放 html 文件(手动创建)
+    2.project_dir/settings.py : 放置了 Django 的全局配置信息, 
+                                ROOT_URLCONF = 'custom_mxonline.urls' 指定了 url 配置文件的位置
+                                
+                                # 在要创建HTML模板文件时，将存放HTML模本的目录添加到这里
+                                TEMPLATES = [
+                                    {
+                                        ....
+                                        'DIRS': [os.path.join(BASE_DIR, 'templates')],
+                                        ……
+                                    }
+                                ]
+                                
+                                数据库参数配置，在创建一个APP时，需要添加数据库的信息，才可以使用数据库模型
+                                DATABASES = {
+                                            'default': {
+                                                'ENGINE': 'django.db.backends.mysql',
+                                                'NAME': 'mxonline_test',
+                                                'USER': "root",
+                                                'PASSWORD': "123456",
+                                                'HOST': "127.0.0.1"
+                                            }
+                                        }
+                                
+                                
+      project_dir/urls.py : 放置了 Django 的主要的 url 入口, URL 和视图函数的映射文件
+      project_dir/wsgi.py : 放置了 Django 启动的 wsgi 文件, web 服务器网关接口配置文件
     3. manager.py : 启动 Django 的主要文件，主要的命令都是通过 manager.py 来运行的
     4.
         (1) 创建 App 目录，在 PyCharm 中 Tools-> Run manager Task 来运行 Django 命令
@@ -78,11 +101,33 @@
                                 原因： 因为在 PyCharm 中已经将 apps 设置为 Source Root，所以 IDE 不会报错，
                                       但是在命令行中是使用 settings.py 中的参数，在 settings.py 中我们没有
                                       将 apps 当作 Source Root 的搜索路径，
+                                      
+                                解决方案:
+                                     在 settings.py 中增加
+                                        import os
+                                        import sys
+                                        BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                                        sys.path.insert(0, os.path.join(BASE_DIR, 'apps'))
+                                        
+        (3) app/models.py: 存放数据库中表模型
             
                     
     5.新建 static 目录来存放 css 文件， js 文件，图片文件， 在 PyCharm 中 该项目右键新建目录 static 
     6.新建 log 目录存放日志， 在 PyCharm 中 该项目右键新建目录 log 
     7. 新建 media 用于存放用户上传文件, 在 PyCharm 中 该项目右键新建目录 meida 
+```
+
+## Django 工作原理
+
+```shell
+    用户在浏览器输入网址：http://192.168.100.129:8080/hello-email/
+    第一步: 从页面获取 URL (http://192.168.100.129:8080/hello-email/)；
+    第二步: 从 settings.py 中找到的 urls.py 的位置,从 urls.py 中搜索到 /hello-email/ 对应的视图
+            hello_email.HelloEmail；
+    第三步: 执行该视图 hello_email.HelloEmail，将 URL 信息传给函数 HelloEmail 的 request 对象；
+           在视图中如需数据库里的数据，根据 models.py ，从数据库里获取数据，然后将数据返回给视图；
+           经过视图函数 HelloEmail 的一系列操作，会将要显示的数据返回给模板 templates 中的 HTML文件；
+    第四步：用户会看到返回的页面，页面中包含了用户需要的数据。
 ```
 
 ## Django 配置数据库（为 model 对象做准备）
