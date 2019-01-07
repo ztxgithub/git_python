@@ -335,7 +335,91 @@
                         login(request, user)
                         return render(request, "index.html") # 一般登录成功之后会跳转到首页或则个人中心页面
                         
-            (3) 在用户登录业务中，
+                更为深层的原理是根据用户名和密码生成 session_id (针对服务端而言), 其保存在数据库中(django_session), 这个表
+                存储了 Django 给每一个用户生成了 session 的信息(会对用户信息进行加密)，其中 session_key 字段实际上是服务器给
+                用户(浏览器的 id ), session_data 字段是一段加密的字符串，把用户的信息(比如名称，密码等等)进行加密， 
+                expire_date 过期时间
+                        
+            (3) 在用户登录业务中，可以通过邮箱和用户名两种方式进行登录，通过自定义 auth 方法，
+                    第一步: 在 settings.py 添加
+                                # 设置邮箱和用户名均可登录
+                                    AUTHENTICATION_BACKENDS = (
+                                        'users.views.CustomBackend',
+                                    
+                                    )
+                    第二步: 在 users/viewer.py 中定义类 CustomBackend：
+                                class CustomBackend(ModelBackend)：
+                                        def authenticate(self, username=None, password=None, **kwargs):
+                                            try:
+                                                # 不希望用户存在两个，get只能有一个。两个是get失败的一种原因 Q为使用并集查询
+                                                user = UserProfile.objects.get(Q(username=username)|Q(email=username))
+                                                # django的后台中密码加密：所以不能password==password
+                                                # UserProfile继承的AbstractUser中有def check_password(self, raw_password):
+                                                if user.check_password(password):
+                                                    return user
+                                            except Exception as e:
+                                                return None
+                                                
+                    业务流程： 先调用 django.contrib.auth 中的 authenticate(username = user_name, password = pass_word)， 
+                             之后这个方法会跳转到自己定义类 CustomBackend 的   
+                             authenticate(self, username=None, password=None, **kwargs) 方法
+                             
+            (4) Django 中并集操作，from django.db.models import Q
+                    Q(username=username)|Q(email=username)
+            (5) 后台的值传到前端页面中, 例如将 views.py 中  return render(request, "login.html", {"msg":"用户名或密码错误! "})
+                那么在 login.html 中将 msg 的值进行显示，
+                     <div class="error btns login-form-tips" id="jsLoginTips">{{ msg }}</div>
+            (6) 使用 Django form 进行表单预处理，例如 post 过来的字段进行判断以及限定条件，通过 form 进行事先处理而不是
+                在自己的 class LoginView() 的 post 方法进行处理
+                    第一步：在 users 创建 forms.py 文件
+                                # 引入Django表单
+                                from  django import forms
+                                
+                                # 登录表单验证
+                                class LoginForm(forms.Form):
+                                    # 用户名密码不能为空,如果为空会报错
+                                    username = forms.CharField(required=True)
+                                    # 密码不能小于5位
+                                    password = forms.CharField(required=True, min_length=5)
+                                    
+                    第二步: 在 class LoginView() 的 post 方法创建 LoginForm 对象
+                                    def post(self, request):
+                                    # 类实例化需要一个字典参数dict: request.POST就是一个QueryDict所以直接传入
+                                    # POST中的username,password，会对应到form中
+                                    login_form = LoginForm(request.POST)
+                            
+                                    # is_valid判断我们字段是否有错,执行我们原有逻辑，验证失败跳回login页面
+                                    if login_form.is_valid():
+                                        ...........
+                                    # 验证不成功跳回登录页面
+                                    # 没有成功说明里面的值是None，并再次跳转回主页面
+                                    else:
+                                        return render(
+                                            request, "login.html", {
+                                                "login_form": login_form })
+                                                
+                           注意:
+                                在 login.html 中
+                                <input name="username" id="account_l" type="text" placeholder="手机号/邮箱" /> username 
+                                必须与 class LoginForm() 中 username 字段一致.
+                                
+                    A. 将  login_form = LoginForm(request.POST) 中的 login_form 表单的信息显示给网站，在 login.html 中
+                            <div class="form-group marb20 {% if login_form.errors.username %}errorput{% endif %} ">
+                                    <label>用&nbsp;户&nbsp;名</label>
+                                    <input name="username" id="account_l" type="text" placeholder="手机号/邮箱" />
+                            </div>
+                            在 div 中加入 {% if login_form.errors.username %}errorput{% endif %}, 这是 template 
+                            语法，如果 login_form 中的 errors 中有 username 相关的错误信息，会 通过 errorput 显示高亮
+                            
+                            同时将错误信息打印，template 进行 for 循环，
+                            {% for key, error in login_form.errors.items %} # for 开始
+                            {{ error }}   # 遍历后的输出
+                            {% endfor %}  # for 结束
+                            
+            (7) cookies
+                    cookies 就是
+                            
+                            
     2.用户登录功能
             (1) 首页是 index.html , 将 index.html 放到项目的 templates 目录下
             (2) 在项目目录中右键新建 static ,用来存放 css, js, image 等静态文件
@@ -363,39 +447,81 @@
                 c. 在 index.html 中的"登录" 对应的 href 改为 "/login/"
                         <a style="color:white" class="fr loginbtn" href="/login/">登录</a>
                     
-            (5) 编写后台逻辑，在 apps/users/views.py
-                        # 当我们配置url被这个view处理时，自动传入request对象.
-                        def user_login(request):
-                            # 前端向后端发送的请求方式: get 或post
-                            # 登录提交表单为post
-                            if request.method == "POST":
-                                .......
-                            # 获取登录页面为get
-                            elif request.method == "GET": 
-                                # render就是渲染html返回用户
-                                # render三变量: 第一个参数：request 
-                                               第二个参数：模板名称（html页面）
-                                               第三个参数：一个字典传给前端的值
-                                return render(request, "login.html", {})  
+            (5) 编写后台逻辑
+                    A. 登录基于函数
+                                在 apps/users/views.py
+                                    # 当我们配置url被这个view处理时，自动传入request对象.
+                                    def user_login(request):
+                                        # 前端向后端发送的请求方式: get 或post
+                                        # 登录提交表单为post
+                                        if request.method == "POST":
+                                            .......
+                                        # 获取登录页面为get
+                                        elif request.method == "GET": 
+                                            # render就是渲染html返回用户
+                                            # render三变量: 第一个参数：request 
+                                                           第二个参数：模板名称（html页面）
+                                                           第三个参数：一个字典传给前端的值
+                                            return render(request, "login.html", {})  
+                                            
+                            在 views.py 的 user_login 函数写好后，与之对应的是 urls.py
+                                    from users.views import user_login
+                                    urlpatterns = [
+                                                    url('^login/$', user_login, name = "login"),
+                                                  ]
+                                                  
+                            在 login.html 中进行账号登录时 <form action="/login/" method="post" autocomplete="off">..</from>
+                            其中 action 对应的是 urls.py 中 url 的地址。
+                            
+                            如果在账号登录时进行 post 提交表单(form) 遇到“禁止访问403， csrf 验证失败，相应中断”，这是 Django 的安全机制，
+                            Django 为了防止跨域的提交，刚开始向前端传递一个随机符号，在 post 的时候只有把这个随机符号带回去。
+                            解决方法：加入 csrf_token,会自动生成 csrf_token 
+                                <form ....>
+                                {% csrf_token %}
+                                </form>
+                            
+                            这个时候 F12 在 <form> 表单中出现
+                             <input type="hidden" name="csrfmiddlewaretoken" value="ZSiXE7ay2FbP9ibHr6oePOlLi85zyiR7"> 
+                             
+                    B. 基于类方法实现登录(在 Django 中推荐使用基于类的方式)
+                            (1) 在 users/views.py 中
+                                    # 基于类实现需要继承的view
+                                    from django.views.generic.base import View
+                                    class LoginView(View):
+                                        # 直接调用get方法免去判断
+                                        def get(self, request):
+                                            # render就是渲染html返回用户
+                                            # render三变量: request 模板名称 一个字典写明传给前端的值
+                                            return render(request, "login.html", {})
+                                    
+                                        def post(self, request):
+                                            # 取不到时为空，username，password为前端页面name值
+                                            user_name = request.POST.get("username", "")
+                                            pass_word = request.POST.get("password", "")
                                 
-                在 views.py 的 user_login 函数写好后，与之对应的是 urls.py
-                        from users.views import user_login
-                        urlpatterns = [
-                                        url('^login/$', user_login, name = "login"),
-                                      ]
-                                      
-                在 login.html 中进行账号登录时 <form action="/login/" method="post" autocomplete="off">..</from>
-                其中 action 对应的是 urls.py 中 url 的地址。
-                
-                如果在账号登录时进行 post 提交表单(form) 遇到“禁止访问403， csrf 验证失败，相应中断”，这是 Django 的安全机制，
-                Django 为了防止跨域的提交，刚开始向前端传递一个随机符号，在 post 的时候只有把这个随机符号带回去。
-                解决方法：加入 csrf_token,会自动生成 csrf_token 
-                    <form ....>
-                    {% csrf_token %}
-                    </form>
-                
-                这个时候 F12 在 <form> 表单中出现
-                 <input type="hidden" name="csrfmiddlewaretoken" value="ZSiXE7ay2FbP9ibHr6oePOlLi85zyiR7"> 
+                                            # 成功返回user对象,失败返回null
+                                            user = authenticate(username=user_name, password=pass_word)
+                                
+                                            # 如果不是null说明验证成功
+                                            if user is not None:
+                                                # login_in 两参数：request, user
+                                                # 实际是对request写了一部分东西进去，然后在render的时候：
+                                                # request是要render回去的。这些信息也就随着返回浏览器。完成登录
+                                                login(request, user)
+                                                # 跳转到首页 user request会被带回到首页
+                                                return render(request, "index.html")
+                                            # 仅当用户真的密码出错时
+                                            else:
+                                                return render(request, "login.html",{"msg":"用户名或密码错误!"})
+                                            
+                            (2) 在 project_dir/urls.py 中
+                                    # 换用类实现
+                                    from users.views import LoginView
+                                    urlpatterns = [   
+                                        # 基于类方法实现登录,这里是调用它的方法
+                                        url('^login/$', LoginView.as_view(), name="login")
+                                    ]
+                                       
                 
                     
 ```
