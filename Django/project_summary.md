@@ -338,7 +338,12 @@
                 更为深层的原理是根据用户名和密码生成 session_id (针对服务端而言), 其保存在数据库中(django_session), 这个表
                 存储了 Django 给每一个用户生成了 session 的信息(会对用户信息进行加密)，其中 session_key 字段实际上是服务器给
                 用户(浏览器的 id ), session_data 字段是一段加密的字符串，把用户的信息(比如名称，密码等等)进行加密， 
-                expire_date 过期时间
+                expire_date 过期时间。这样当浏览器与 Django 进行通信时，只需要将 session_id(对应于数据库中 session_key 字段)
+                传给 Django 后台，而不需要每次请求时将用户信息(用户名和密码等)给 Django 后台。
+                在  login(request, user) 中，Django 是如何将 seesion_id 转化为用户名和密码的，在 settings.py 中 
+                INSTALLED_APPS 的 'django.contrib.sessions' 会每次对 request 和 response 的请求做拦截，拦截到浏览器
+                的 request 时，会在里面找到 sessionid, 再通过 sessionid 在 django_session 表中查询，找到对应的 session_data
+                里面包含用户的信息
                         
             (3) 在用户登录业务中，可以通过邮箱和用户名两种方式进行登录，通过自定义 auth 方法，
                     第一步: 在 settings.py 添加
